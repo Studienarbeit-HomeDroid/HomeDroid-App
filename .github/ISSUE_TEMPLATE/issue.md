@@ -1,3 +1,12 @@
+---
+name: "Allgemeines Issue"
+description: "Verwende dieses Template für allgemeine Anfragen oder Probleme."
+title: "[ALLGEMEIN]"
+labels: []
+assignees: []
+
+---
+
 **Beschreibung**
 Gib hier eine klare und prägnante Beschreibung des Problems an.
 
