@@ -1,5 +1,5 @@
 ---
-name: "Issue"
+name: "Tracking issue"
 about: Use this template for tracking new features.
 title: "[ALLGEMEIN]"
 labels: []
