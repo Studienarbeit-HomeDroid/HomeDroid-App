@@ -1,6 +1,6 @@
 ---
-name: "Allgemeines Issue"
-description: "Verwende dieses Template für allgemeine Anfragen oder Probleme."
+name: "Issue"
+about: Use this template for tracking new features.
 title: "[ALLGEMEIN]"
 labels: []
 assignees: []
