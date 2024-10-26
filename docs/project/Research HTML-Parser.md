@@ -3,17 +3,23 @@
 Eine Kotlin Multiplatform-Bibliothek zum Arbeiten mit HTML & XML.
 
 **Einbinden mit:
+
 `implementation("com.fleeksoft.ksoup:ksoup:<version>")`
 
 **Beispiel Verwendung:
-`val html = "<html><head><title>Beispiel</title></head><body>Hallo Welt</body></html>"
-`val doc: Document = Ksoup.parse(html = html) println("Titel: ${doc.title()}") 
-	`// Ausgabe: Titel: Beispiel 
-`println("Body Text: ${doc.body().text()}") 
-	`// Ausgabe: Body Text: Hallo Welt
+
+`val html = "<html><head><title>Beispiel</title></head><body>Hallo Welt</body></html>"`
+
+`val doc: Document = Ksoup.parse(html = html)`
+
+`println("Titel: ${doc.title()}") // Ausgabe: Titel: Beispiel`
+
+`println("Body Text: ${doc.body().text()}") // Ausgabe: Body Text: Hallo Welt`
+
 
 **Hauptfunktionen
- -  HTML von URLs, Dateien oder Strings scrapen und parsen
+
+ - HTML von URLs, Dateien oder Strings scrapen und parsen
  - Daten mit DOM-Traversierung oder CSS-Selektoren finden und extrahieren
  - HTML-Elemente, Attribute und Text manipulieren
  - Benutzergenerierte Inhalte gegen eine Safelist bereinigen, um XSS-Angriffe zu verhindern
@@ -62,24 +68,86 @@ Nachteil:
 
 AI-Beispiel:
 
-`class SimpleHtmlParser { 
-`	private val tagPattern = "<(\\w+)[^>]*>(.*?)
-	`</\\1>".toRegex(RegexOption.DOT_MATCHES_ALL)
-	`private val attributePattern = "(\\w+)\\s*=\\s*\"([^\"]*)\"".toRegex() 
+	class SimpleHtmlParser {
+    private val tagPattern = "<(\\w+)[^>]*>(.*?)</\\1>".toRegex(RegexOption.DOT_MATCHES_ALL)
+    private val attributePattern = "(\\w+)\\s*=\\s*\"([^\"]*)\"".toRegex()
 
-`	fun parse(html: String): HtmlElement { 
-		`val root = HtmlElement("root", mutableMapOf(), mutableListOf()) 
-		`parseRecursive(html, root) 
-		`return root 
-	`} 
 
-	private fun parseRecursive(html: String, parent: HtmlElement) { 
-		tagPattern.findAll(html).forEach { matchResult -> 
-			val (tag, content) = matchResult.destructured 
-			val attributes = parseAttributes(matchResult.value) 
-			val element = HtmlElement(tag, attributes, mutableListOf()) 
-			parent.children.add(element) 
-			parseRecursive(content, element) 
-		} 
-	} 
-...
+    fun parse(html: String): HtmlElement {
+        val root = HtmlElement("root", mutableMapOf(), mutableListOf())
+        parseRecursive(html, root)
+        return root
+    }
+
+    private fun parseRecursive(html: String, parent: HtmlElement) {
+        tagPattern.findAll(html).forEach { matchResult ->
+            val (tag, content) = matchResult.destructured
+            val attributes = parseAttributes(matchResult.value)
+            val element = HtmlElement(tag, attributes, mutableListOf())
+            parent.children.add(element)
+            parseRecursive(content, element)
+        }
+    }
+
+    private fun parseAttributes(tag: String): MutableMap<String, String> {
+        return attributePattern.findAll(tag)
+            .associate { it.groupValues[1] to it.groupValues[2] }
+            .toMutableMap()
+    }
+	}
+
+	data class HtmlElement(
+    val tag: String,
+    val attributes: MutableMap<String, String>,
+    val children: MutableList<HtmlElement>
+	) {
+ 
+    fun getText(): String {
+        return if (children.isEmpty()) {
+            attributes["text"] ?: ""
+        } else {
+            children.joinToString("") { it.getText() }
+        }
+    }
+
+
+    fun getElementsByTag(tagName: String): List<HtmlElement> {
+        return if (tag.equals(tagName, ignoreCase = true)) {
+            listOf(this)
+        } else {
+            children.flatMap { it.getElementsByTag(tagName) }
+        }
+    }
+	}
+
+	fun main() {
+    val html = """
+        <html>
+            <head>
+                <title>Beispielseite</title>
+            </head>
+            <body>
+                <h1>Willkommen</h1>
+                <p>Dies ist ein <a href="https://example.com">Link</a>.</p>
+                <ul>
+                    <li>Element 1</li>
+                    <li>Element 2</li>
+                </ul>
+            </body>
+        </html>
+    """.trimIndent()
+
+    val parser = SimpleHtmlParser()
+    val rootElement = parser.parse(html)
+
+    // Beispiele für die Verwendung
+    println("Titel: ${rootElement.getElementsByTag("title").firstOrNull()?.getText()}")
+    println("Alle Links:")
+    rootElement.getElementsByTag("a").forEach { link ->
+        println("- Text: ${link.getText()}, Href: ${link.attributes["href"]}")
+    }
+    println("Listenpunkte:")
+    rootElement.getElementsByTag("li").forEach { item ->
+        println("- ${item.getText()}")
+    }
+	}
