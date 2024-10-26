@@ -2,22 +2,19 @@
 
 Eine Kotlin Multiplatform-Bibliothek zum Arbeiten mit HTML & XML.
 
-**Einbinden mit:
+**Einbinden mit:**
 
 `implementation("com.fleeksoft.ksoup:ksoup:<version>")`
 
-**Beispiel Verwendung:
+**Beispiel Verwendung:**
 
-`val html = "<html><head><title>Beispiel</title></head><body>Hallo Welt</body></html>"`
-
-`val doc: Document = Ksoup.parse(html = html)`
-
-`println("Titel: ${doc.title()}") // Ausgabe: Titel: Beispiel`
-
-`println("Body Text: ${doc.body().text()}") // Ausgabe: Body Text: Hallo Welt`
+	val html = "<html><head><title>Beispiel</title></head><body>Hallo Welt</body></html>"
+	val doc: Document = Ksoup.parse(html = html)
+	println("Titel: ${doc.title()}") // Ausgabe: Titel: Beispiel
+	println("Body Text: ${doc.body().text()}") // Ausgabe: Body Text: Hallo Welt
 
 
-**Hauptfunktionen
+**Hauptfunktionen**
 
  - HTML von URLs, Dateien oder Strings scrapen und parsen
  - Daten mit DOM-Traversierung oder CSS-Selektoren finden und extrahieren
@@ -64,7 +61,7 @@ Nachteil:
 Nachteil: 
 - Aufwändig bei komplexem Parsing
 - Möglicherweise weniger Robust
-- **Zusätzlicher Aufwand + Aufwand kann schwer abgeschätzt werden
+- **Zusätzlicher Aufwand + Aufwand kann schwer abgeschätzt werden**
 
 AI-Beispiel:
 
