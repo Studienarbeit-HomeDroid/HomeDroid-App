@@ -1,5 +1,5 @@
 
-Es wird der Fallstudienansatz des Beurteilungsfalls verwendet, der sich auf die Bewertung verschiedener Lösungsansätze zur Problembewältigung konzentriert.
+> **Es wird der Fallstudienansatz des Beurteilungsfalls verwendet, der sich auf die Bewertung verschiedener Lösungsansätze zur Problembewältigung konzentriert.**
 ## Forschungsziel
 
 Für die Entwicklung einer Android-Auto-fähigen Smartphone-App ist die automatische Anpassung der UI-Struktur an eine bereitgestellte Weboberfläche eine zentrale Anforderung. Ziel dieser Fallstudie ist es, verschiedene Technologien zur Umsetzung dieser Anpassung zu analysieren und die geeignetste Lösung fundiert auszuwählen und zu begründen.
