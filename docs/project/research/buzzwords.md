@@ -1,8 +1,8 @@
-___
+
 **Wichtig**
 Die folgenden Inhalte dienen nur zur Informationsbeschaffung
 ## Web Scaping
-___
+
 Web Scraping, auch Screen Scraping genannt, bezeichnet generell den Vorgang des Extrahierens, Kopierens, Speicherns sowie der Wiederverwendung fremder Inhalte im Netz
 
 ### Arten
@@ -29,7 +29,7 @@ Web Scraping findet in vielen verschiedenen Bereichen Anwendung.
 https://www.myrasecurity.com/de/downloads/
 
 ## HTML-Parser
-___
+
 Ein HTML-Parser ist eine Bibliothek zum Parsen von HTML-Dokumenten. Normalerweise kann er auch XML parsen. Mit anderen Worten: HTML-Parser verarbeiten den HTML-Code und konvertieren ihn in ein strukturiertes Datenformat, das leicht navigiert und bearbeitet werden kann. Sie erzeugen eine einfacher zu erkundende Darstellung des  [DOM,](https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model)  das mit der HTML-Seite verknüpft ist.
 
 HTML-Parser verwenden normalerweise lokale Dateien, URLs oder reine HTML-Zeichenfolgen als Eingabe. Anschließend analysieren sie den HTML-Code Zeichen für Zeichen und identifizieren verschiedene Elemente wie Tags, Attribute und Inhalte. Während sie das XML/HTML-Dokument analysieren, erstellen sie eine baumartige Struktur, die die hierarchische Darstellung des HTML-Dokuments enthält.
