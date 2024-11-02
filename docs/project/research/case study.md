@@ -14,12 +14,11 @@ Untersuchung möglicher Technologien zur automatischen Anpassung der UI-Struktur
 ## Literatur
 ___
 Weitere Informationen zur Literaturrecherche
-- [Mögliche HTML-Parser](html-parser)
+- [Mögliche HTML-Parser](html-parser.md)
 - [Schlüsselbegriffe](buzzwords.md)
 
 ## Analyse
 ___
+Zwei der in der Literaturrecherche gefundenen HTML-Parser sollen im Rahmen der Analyse genauer untersucht werden. Dafür wird das folgende Schema angewendet. Nach der detaillierten Untersuchung beider Parser soll eine fundierte Entscheidung für den bevorzugten Parser formuliert werden.
 
-
-
-
+**Schemata:** [[schema HTM-parser analysis]]
