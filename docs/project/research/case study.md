@@ -22,4 +22,4 @@ Weitere Informationen zur Literaturrecherche
 
 Zwei der in der Literaturrecherche gefundenen HTML-Parser sollen im Rahmen der Analyse genauer untersucht werden. Dafür wird das folgende Schema angewendet. Nach der detaillierten Untersuchung beider Parser soll eine fundierte Entscheidung für den bevorzugten Parser formuliert werden.
 
-**Schemata:** [schema HTML-parser analysis](schema html-parser analysis.md)
+**Schemata:** [schema HTML-parser analysis](schema-analysis.md)
