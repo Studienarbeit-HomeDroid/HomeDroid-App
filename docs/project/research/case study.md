@@ -15,8 +15,8 @@ Untersuchung möglicher Technologien zur automatischen Anpassung der UI-Struktur
 
 Weitere Informationen zur Literaturrecherche
 
-- [Mögliche HTML-Parser](html-parser.md)
-- [Schlüsselbegriffe](buzzwords.md)
+- [Mögliche HTML-Parser](literatur/html-parser.md)
+- [Schlüsselbegriffe](literatur/buzzwords.md)
 
 ## Analyse
 
