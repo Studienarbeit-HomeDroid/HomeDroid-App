@@ -1,4 +1,7 @@
 # Ksoup
+> Es gibt unterschiedliche implementierung von Ksoup
+> https://github.com/fleeksoft/ksoup
+> https://github.com/MohamedRejeb/Ksoup
 
 Eine Kotlin Multiplatform-Bibliothek zum Arbeiten mit HTML & XML.
 
