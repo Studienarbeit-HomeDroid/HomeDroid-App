@@ -38,6 +38,15 @@ Offizielle Kotlin-Bibliothek zum Generieren und Parsen von HTML. Bietet eine DSL
 Nachteil: Hauptsächlich für Generierung konzipiert, Parsing-Funktion weniger umfangreich.
 --> für uns ungeeignet
 
+# Skrape{it}
+
+https://github.com/skrapeit/skrape.it
+
+- Integriert sich nahtlos mit anderen Kotlin Bibliotheken
+- legt großen Wert auf DSL -> einfaches Lesen des Codes
+- mehr Flexibilität
+- gute Doku
+
 # Kobalt
 
 Angelehnt an Javas Jsoup --> Ähnliche verwendung
@@ -45,6 +54,8 @@ Angelehnt an Javas Jsoup --> Ähnliche verwendung
 Nachteil: Keine Multiplatform Unterstützung --> nur für Java Virtual Machine und Android 
 
 --> Würde theoretisch für uns reichen, aber warum nicht gleich Ksoup?
+
+Wird von Googles Cobalt genutzt --> nicht für uns geeignet
 
 # Krossbow
 
