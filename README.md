@@ -1,6 +1,7 @@
-![DROID](https://github.com/user-attachments/assets/776c31d4-0b6a-4367-b80f-638ce6ff6279)
+<p align="center">
+  <img width="523" src="https://github.com/user-attachments/assets/d3cd17aa-f921-4926-ab68-25164fa5b3c6">
+</p>
 
-(HomeDroid)
 
 Studienarbeit zum Thema Smarthome-Control als Android Auto App
 
