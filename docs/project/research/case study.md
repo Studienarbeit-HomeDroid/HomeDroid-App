@@ -21,5 +21,6 @@ Weitere Informationen zur Literaturrecherche
 ## Analyse
 
 Zwei der in der Literaturrecherche gefundenen HTML-Parser sollen im Rahmen der Analyse genauer untersucht werden. Dafür wird das folgende Schema angewendet. Nach der detaillierten Untersuchung beider Parser soll eine fundierte Entscheidung für den bevorzugten Parser formuliert werden.
+1. [Ksoup](app/gradle/Ksoup.md)
 
 **Schemata:** [schema HTML-parser analysis](schema_analysis.md)
