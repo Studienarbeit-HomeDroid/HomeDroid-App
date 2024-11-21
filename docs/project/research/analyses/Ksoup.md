@@ -40,193 +40,92 @@ Alle wichtigen Informationen zum Einstieg in Ksoup finden sich im offiziellen [G
 Eine umfassende [Dokumentation](https://fleeksoft.github.io/ksoup/index.html) zu allen Methoden, Klassen, Exceptions und Interfaces, die in der Bibliothek enthalten sind, wird ebenfalls bereitgestellt. Diese enthält detaillierte Beschreibungen der Funktionen und ihrer Parameter.
 
 Da viele Konzepte von **Jsoup** übernommen wurden, wird auch auf die [Jsoup-Dokumentation](https://jsoup.org/cookbook/extracting-data/attributes-text-html) verwiesen. Diese ist sehr umfangreich und bietet alle notwendigen Informationen für die Arbeit mit der Bibliothek.
-## Edge Cases und Funktionalitäten
+## Funktionalitäten und Fehlertoleranz
 
-Um die Stabilität, Funktionalität und Fehlertoleranz des Parsers zu prüfen, wurden die folgenden Testfälle für komplexe und fehlerhafte HTML-Strukturen definiert:
 
-#### Ungeschlossene Tags
-**Html-Struktur**
 
-```html
-
-<div>
-
-    <p id="first">[1] first paragraf
-
-    <p id="second"> [2] second paragraf</p>
-
-</div>
-
-```
-
-**Durchführung**
-
-Der Test überprüft, wie der Parser mit einem ungeschlossenen `<p>`-Tag umgeht, wenn der Inhalt einzelner `<p>`-Tags anhand ihrer IDs extrahiert werden soll. Der folgende Codeausschnitt zeigt das Szenario:
-
-```kotlin
-
-fun unclosedTagTest()  
-
-{  
-
-    val doc: com.fleeksoft.ksoup.nodes.Document = Ksoup.parse(html = html)  
-
-    val first = doc.getElementById("first")  
-
-    val second = doc.getElementById("second")  
-
-    if (first != null) {  
-
-           Log.i("First", first.text())  
-
-       }  
-
-    if (second != null) {  
-
-        Log.i("Second", second.text())  
-
-    }  
-
-}
-
-```
-
-**Ziel**:
-Der Parser sollte den Inhalt der einzelnen `<p>`-Tags anhand ihrer IDs entnehmen, auch wenn einer davon nicht korrekt geschlossen ist.
-
-  
-
-**Ergebnis**
-Der Parser kann das fehlerhafte HTML ohne Fehlermeldung lesen. Unabhängig davon, ob ein Tag geschlossen ist oder nicht, wird der Text des Tags vollständig und korrekt ausgegeben.
-
-  
-
-![[Pasted image 20241107175419.png]]
-
-  
-
-#### Attributanomalien  
-**Html-Struktur:**
-
-```html
-
-<div id=test>missing quotation marks</div>
-
-<a id="first" id="second">double attributes</a>
-
-```
-
-**Durchführung:**
-Der Test überprüft, wie der Parser mit Attributanomalien umgeht. Hierfür können Fehler in der ID-Deklaration sowie doppelt vorkommende IDs getestet werden.
-
-```kotlin
-
-fun attributAnomaliesTest() {  
-
-  
-
-    val doc: com.fleeksoft.ksoup.nodes.Document = Ksoup.parse(html = html)  
-
-    val missingQuotationMarks = doc.getElementById("test");  
-
-    val doubleAttributesByIdFirst = doc.getElementById("first")  
-
-    val doubleAttributesByIdSecond = doc.getElementById("second")  
-
-    if (missingQuotationMarks != null)  
-
-    {  
-
-        Log.i("Result Missing Quotation Marks", missingQuotationMarks.text())  
-
-    }  
-
-    if (doubleAttributesByIdFirst != null)  
-
-    {  
-
-        Log.i("Result double Attributes [ID First]", doubleAttributesByIdFirst.text())  
-
-    }  
-
-    if (doubleAttributesByIdSecond != null)  
-
-    {  
-
-        Log.i("Result double Attributes [ID Second]", doubleAttributesByIdSecond.text())  
-
-    }  
-
-}
-
-```
-
-**Ergebnis:**
-Der Parser kann auch bei fehlenden Anführungszeichen in der Attributdeklaration die ID korrekt erkennen und den gewünschten Text ausgeben.
-  
-
-![[Pasted image 20241108151125.png]]
-
-Bei einer doppelten Attributdeklaration wird nur die erste Deklaration berücksichtigt; die zweite bleibt unberücksichtigt.
-
-![[Pasted image 20241108151218.png]]
-#### Javascript CSS Parsing
-**Html-Struktur:**
-
-```html
-
-<button onclick="alert('Klick!')">Klick mich</button>  
-
-<style>body { background-color: blue; }</style>
-
-```
-
-**Durchführung:**
-Der Test prüft, ob der Parser JavaScript-Aufrufe innerhalb von Tags korrekt identifizieren kann. Zusätzlich wird getestet, ob CSS-Inhalte zuverlässig erkannt und extrahiert werden können
+#### JavaScript-Aufrufe auslesen
+Der Test prüft, ob der Parser JavaScript-Aufrufe innerhalb von Tags korrekt identifizieren kann. 
   
 ```kotlin
 
-fun testJavaScriptAndCssTest() {  
-
-    val html = """  
-
-                <button onclick="alert('Klick!')">Klick mich</button>  
-
-                <style>body { background-color: blue; }</style>      
-
-               """.trimIndent()  
-
-  
+fun javaScriptTest() {  
 
     val doc: com.fleeksoft.ksoup.nodes.Document = Ksoup.parse(html = html)  
-
     val button = doc.select("button[onclick]").first()  
-
     val style = doc.select("style").first()  
-
-  
-
     if(button != null) {  
-
         Log.i("Result Button", button.attr("onclick"))  
-
     }  
-
     if(style != null) {  
-
         Log.i("Result Css", style.data())  
-
     }  
-
 }
 
 ```
 
 **Ergebnis**
 Der Parser ist in der Lage, JavaScript-Aufrufe innerhalb von Tags zu erkennen, ebenso wie CSS-Inhalte zuverlässig zu identifizieren und zu extrahieren.
-  
 
 ![[Pasted image 20241108154115.png]]
+
+#### Ungeschlossene Tags
+Der Test überprüft, wie der Parser mit einem ungeschlossenen `<p>`-Tag umgeht, wenn der Inhalt einzelner `<p>`-Tags anhand ihrer IDs extrahiert werden soll. Der folgende Codeausschnitt zeigt das Szenario:
+
+```kotlin
+fun unclosedTagTest()  
+{  
+    val doc: com.fleeksoft.ksoup.nodes.Document = Ksoup.parse(html = html)  
+    val first = doc.getElementById("first")  
+    val second = doc.getElementById("second")  
+    if (first != null) {  
+           Log.i("First", first.text())  
+       }  
+    if (second != null) {  
+        Log.i("Second", second.text())  
+    }  
+}
+```
+
+**Ergebnis**
+Der Parser kann das fehlerhafte HTML ohne Fehlermeldung lesen. Unabhängig davon, ob ein Tag geschlossen ist oder nicht, wird der Text des Tags vollständig und korrekt ausgegeben.
+
+![[Pasted image 20241107175419.png]]
+#### Attributanomalien  
+Der Test überprüft, wie der Parser mit Attributanomalien umgeht. Hierfür können Fehler in der ID-Deklaration sowie doppelt vorkommende IDs getestet werden.
+
+```kotlin
+fun attributAnomaliesTest() {  
+    val doc: com.fleeksoft.ksoup.nodes.Document = Ksoup.parse(html = html)  
+    val missingQuotationMarks = doc.getElementById("test");  
+    val doubleAttributesByIdFirst = doc.getElementById("first")  
+    val doubleAttributesByIdSecond = doc.getElementById("second")  
+    if (missingQuotationMarks != null)  
+    {  
+        Log.i("Result Missing Quotation Marks", missingQuotationMarks.text())  
+    }  
+    if (doubleAttributesByIdFirst != null)  
+    {  
+        Log.i("Result double Attributes [ID First]", doubleAttributesByIdFirst.text())  
+    }  
+    if (doubleAttributesByIdSecond != null)  
+    {  
+        Log.i("Result double Attributes [ID Second]", doubleAttributesByIdSecond.text())  
+    }  
+}
+```
+**Ergebnis:**
+Der Parser kann auch bei fehlenden Anführungszeichen in der Attributdeklaration die ID korrekt erkennen und den gewünschten Text ausgeben.  
+
+![[Pasted image 20241108151125.png]]
+
+Bei einer doppelten Attributdeklaration wird nur die erste Deklaration berücksichtigt; die zweite bleibt unberücksichtigt.
+
+![[Pasted image 20241108151218.png]]
+
+## Zeit- und Speicherverbrauch
+
+
 
 ## Bewertung
 
