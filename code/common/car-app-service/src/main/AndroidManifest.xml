@@ -11,7 +11,7 @@
             android:value="1" />
 
         <service
-            android:name="com.example.places.carappservice.PlacesCarAppService"
+            android:name="com.example.places.carappservice.CarAppService"
             android:exported="true">
             <intent-filter>
                 <action android:name="androidx.car.app.CarAppService" />
