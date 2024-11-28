@@ -68,7 +68,7 @@
                                             <option name="values">
                                               <map>
                                                 <entry key="color" value="ffffff" />
-                                                <entry key="imagePath" value="/private/var/folders/f8/trw8y_2j2tg0pxlyddvh3yp40000gn/T/baseline_home_24.xml" />
+                                                <entry key="imagePath" value="/private/var/folders/f8/trw8y_2j2tg0pxlyddvh3yp40000gn/T/baseline_favorite_24.xml" />
                                               </map>
                                             </option>
                                           </PersistentState>
@@ -79,7 +79,7 @@
                                           <PersistentState>
                                             <option name="values">
                                               <map>
-                                                <entry key="url" value="jar:file:/Applications/Android%20Studio.app/Contents/plugins/android/lib/android.jar!/images/material/icons/materialicons/home/baseline_home_24.xml" />
+                                                <entry key="url" value="file:$USER_HOME$/Library/Android/sdk/icons/material/materialicons/favorite/baseline_favorite_24.xml" />
                                               </map>
                                             </option>
                                           </PersistentState>
@@ -125,6 +125,7 @@
                                       <entry key="backgroundAssetType" value="COLOR" />
                                       <entry key="backgroundColor" value="020202" />
                                       <entry key="foregroundAssetType" value="CLIP_ART" />
+                                      <entry key="outputName" value="favorite" />
                                     </map>
                                   </option>
                                 </PersistentState>

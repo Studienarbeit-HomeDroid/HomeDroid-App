@@ -1,4 +1,4 @@
-package com.example.places.carappservice.module
+package com.example.places.carappservice.components
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes

@@ -13,7 +13,7 @@ import androidx.car.app.model.TabTemplate
 import androidx.car.app.model.Template
 import androidx.core.graphics.drawable.IconCompat
 import com.example.places.carappservice.R
-import com.example.places.carappservice.module.TabInfo
+import com.example.places.carappservice.components.TabInfo
 
 /*
     Generates the user Inferfaces
@@ -23,17 +23,20 @@ import com.example.places.carappservice.module.TabInfo
 class MainScreen(carContext: CarContext) : Screen(carContext) {
 
     private val firstTab = TabInfo("first_tab", R.string.first_tab, R.drawable.home_tab)
-    private val secondTab = TabInfo("second_tab", R.string.second_tab, R.drawable.home_tab)
+    private val secondTab = TabInfo("second_tab", R.string.second_tab, R.drawable.favorite_foreground)
+    private val favoriteScreen = FavoriteScreen(carContext);
+
 
     private var activeContentId: String = firstTab.tabId
 
     private fun getFirstTabTemplate() : Template {
         return MessageTemplate.Builder("This is my first tab").build()
+
     }
 
 
-    private fun getSecondTabTemplate() : Template {
-        return MessageTemplate.Builder("This is my second tab").build()
+    private fun getFavoriteTabTemplate() : Template {
+        return favoriteScreen.onGetTemplate()
     }
 
     @OptIn(ExperimentalCarApi::class)
@@ -41,7 +44,7 @@ class MainScreen(carContext: CarContext) : Screen(carContext) {
         return if (activeContentId == firstTab.tabId) {
             TabContents.Builder(getFirstTabTemplate()).build()
         } else {
-            TabContents.Builder(getSecondTabTemplate()).build()
+            TabContents.Builder(getFavoriteTabTemplate()).build()
         }
     }
 
