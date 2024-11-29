@@ -2,4 +2,10 @@
 <resources>
     <string name="first_tab">Home</string>
     <string name="second_tab">Favorite</string>
+    <string name="maindoor">Haustür</string>
+    <string name="windows">Fenster</string>
+    <string name="door">Türen</string>
+    <string name="elekticity">Strom</string>
+    <string name="counter">Zähler</string>
+    <string name="solar">Solar</string>
 </resources>

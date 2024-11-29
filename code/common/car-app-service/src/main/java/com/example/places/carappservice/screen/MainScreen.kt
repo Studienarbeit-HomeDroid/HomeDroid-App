@@ -24,13 +24,14 @@ class MainScreen(carContext: CarContext) : Screen(carContext) {
 
     private val firstTab = TabInfo("first_tab", R.string.first_tab, R.drawable.home_tab)
     private val secondTab = TabInfo("second_tab", R.string.second_tab, R.drawable.favorite_foreground)
-    private val favoriteScreen = FavoriteScreen(carContext);
+    private val favoriteScreen = FavoriteScreen(carContext)
+    private var homeScreen = HomeScreen(carContext)
 
 
     private var activeContentId: String = firstTab.tabId
 
     private fun getFirstTabTemplate() : Template {
-        return MessageTemplate.Builder("This is my first tab").build()
+        return homeScreen.onGetTemplate()
 
     }
 
