@@ -38,38 +38,42 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.example.places.components.DashboardComponent
+import com.example.places.components.FavoriteComponents
+import com.example.places.components.GroupComponent
 import com.example.places.data.PlacesRepository
 import com.example.places.data.model.Place
 import com.example.places.data.model.toIntent
-import com.example.places.ui.theme.PlacesTheme
+import com.example.places.ui.theme.HomeDroidTheme
 
 class MainActivity : ComponentActivity() {
+    val groupComponent: GroupComponent = GroupComponent("Bad")
+    val dashboardComponent: DashboardComponent = DashboardComponent()
+    val favoriteComponent: FavoriteComponents = FavoriteComponents()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
             val carConnectionType by CarConnection(this).type.observeAsState(initial = -1)
 
-            PlacesTheme {
-                // A surface container using the 'background' color from the theme
+            HomeDroidTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    color = MaterialTheme.colorScheme.primary
                 ) {
-                    Column {
-                        Text(
-                            text = "Places",
-                            style = MaterialTheme.typography.displayLarge,
-                            modifier = Modifier.padding(8.dp)
-                        )
+                    Column(modifier = Modifier.padding(horizontal = 8.dp)) {
                         ProjectionState(
                             carConnectionType = carConnectionType,
                             modifier = Modifier.padding(8.dp)
                         )
-                        PlaceList(places = PlacesRepository().getPlaces())
+                        groupComponent.ListOfGroup()
+                        dashboardComponent.Dashboard()
+                        favoriteComponent.Favorite()
+                        //PlaceList(places = PlacesRepository().getPlaces())
                     }
                 }
             }
@@ -119,7 +123,7 @@ fun PlaceList(places: List<Place>) {
                     Icons.Default.Place,
                     "Place icon",
                     modifier = Modifier.align(CenterVertically),
-                    tint = MaterialTheme.colorScheme.surfaceTint
+                    tint = MaterialTheme.colorScheme.tertiary
                 )
                 Column {
                     Text(
@@ -130,7 +134,7 @@ fun PlaceList(places: List<Place>) {
                         text = place.description,
                         style = MaterialTheme.typography.bodyMedium,
                         overflow = TextOverflow.Ellipsis,
-                        maxLines = 1
+                        maxLines = 2
                     )
                 }
 
