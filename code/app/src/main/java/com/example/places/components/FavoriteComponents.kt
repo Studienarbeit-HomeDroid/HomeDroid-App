@@ -10,6 +10,8 @@ import com.example.places.carappservice.screen.FavoriteScreen
 
 class FavoriteComponents
 {
+    private val favoriteCardComponent: FavoriteCardComponent = FavoriteCardComponent()
+
     @Composable
     fun Favorite(){
         Text(
@@ -19,5 +21,7 @@ class FavoriteComponents
                 .padding(top = 13.dp)
                 .padding(bottom = 8.dp)
         )
+        favoriteCardComponent.ListOfCards()
+
     }
 }

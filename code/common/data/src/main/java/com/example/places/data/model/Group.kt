@@ -19,16 +19,14 @@ package com.example.places.data.model
 import android.content.Intent
 import androidx.core.net.toUri
 
-data class Place(
+data class Group(
     val id: Int,
     val name: String,
-    val description: String,
-    val latitude: Double,
-    val longitude: Double
+    val devices: List<Device>
 )
 
-fun Place.toIntent(action: String): Intent {
-    return Intent(action).apply {
-        data = "geo:$latitude,$longitude".toUri()
-    }
-}
+//fun Place.toIntent(action: String): Intent {
+//    return Intent(action).apply {
+//        data = "geo:$latitude,$longitude".toUri()
+//    }
+//}

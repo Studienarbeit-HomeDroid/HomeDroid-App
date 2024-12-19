@@ -48,7 +48,11 @@ class DashboardComponent {
             ElevatedCard(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(275.dp)
+                    .height(275.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.secondary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                )
             ) {
 
                 Column {

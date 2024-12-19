@@ -1,31 +1,28 @@
 package com.example.places.components
 
-import android.graphics.drawable.Icon
-import androidx.compose.foundation.border
+import BottomSheetViewModel
+import androidx.car.app.connection.CarConnection
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBox
-import androidx.compose.material.icons.filled.Face
-import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CardElevation
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,12 +30,21 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.places.data.model.Group
 import com.example.places.ui.theme.HomeDroidTheme
 
-class GroupComponent(val groupName: String) {
+class GroupComponent() {
 
+
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun Group() {
+    fun Group(group: Group) {
+
+        val openButtomSheet: BottomSheetViewModel = BottomSheetViewModel()
+        val modalButtomSheetComponent: ModalButtomSheetComponent = ModalButtomSheetComponent()
+        val sheetState = rememberModalBottomSheetState()
+
+
         HomeDroidTheme {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -51,7 +57,9 @@ class GroupComponent(val groupName: String) {
                     modifier = Modifier
                         .size(width = 70.dp, height = 70.dp)
                         .clip(RoundedCornerShape(10.dp))
-                        .clickable {  },
+                        .clickable {
+                            openButtomSheet.toggleBottomSheet()
+                        },
                 ) {
                     Box(
                         modifier = Modifier.fillMaxSize(),
@@ -67,29 +75,61 @@ class GroupComponent(val groupName: String) {
                 }
 
                 Text(
-                    text = groupName,
+                    text = group.name,
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(top = 5.dp)
                 )
             }
+
+            if (openButtomSheet.getBottomSheetValue()) {
+                modalButtomSheetComponent.ModalButtomSheet(openButtomSheet, group)
+            }
         }
     }
 
     @Composable
-    fun ListOfGroup() {
-        Text(
-            text = "Gruppen",
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.padding(top = 13.dp).padding(bottom = 8.dp)
-        )
+    fun GroupList(carConnectionType: Int, groups: List<Group>) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = "Gruppen",
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.padding(top = 13.dp).padding(bottom = 8.dp)
+            )
+            ProjectionState(
+                carConnectionType = carConnectionType,
+                modifier = Modifier.padding(8.dp)
+            )
+
+        }
+
         LazyRow(
             modifier = Modifier.padding(end = 8.dp),
             horizontalArrangement = Arrangement.Center
         ) {
-            items(5){
-                Group()
+            items(groups){ group ->
+                Group(group)
             }
         }
     }
+
+    @Composable
+    fun ProjectionState(carConnectionType: Int, modifier: Modifier = Modifier) {
+        val text = when (carConnectionType) {
+            CarConnection.CONNECTION_TYPE_NOT_CONNECTED -> "Not projecting"
+            CarConnection.CONNECTION_TYPE_NATIVE -> "Running on Android Automotive OS"
+            CarConnection.CONNECTION_TYPE_PROJECTION -> "Projecting"
+            else -> "Unknown connection type"
+        }
+
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = modifier.padding(5.dp)
+        )
+    }
+
 }

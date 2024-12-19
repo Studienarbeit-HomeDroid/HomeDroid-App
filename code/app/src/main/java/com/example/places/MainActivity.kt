@@ -21,11 +21,14 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.car.app.connection.CarConnection
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.Icon
@@ -45,15 +48,13 @@ import androidx.compose.ui.unit.dp
 import com.example.places.components.DashboardComponent
 import com.example.places.components.FavoriteComponents
 import com.example.places.components.GroupComponent
-import com.example.places.data.PlacesRepository
-import com.example.places.data.model.Place
-import com.example.places.data.model.toIntent
+import com.example.places.data.GroupRepository
 import com.example.places.ui.theme.HomeDroidTheme
 
 class MainActivity : ComponentActivity() {
-    val groupComponent: GroupComponent = GroupComponent("Bad")
-    val dashboardComponent: DashboardComponent = DashboardComponent()
-    val favoriteComponent: FavoriteComponents = FavoriteComponents()
+    private val groupComponent: GroupComponent = GroupComponent()
+    private val dashboardComponent: DashboardComponent = DashboardComponent()
+    private val favoriteComponent: FavoriteComponents = FavoriteComponents()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -62,15 +63,11 @@ class MainActivity : ComponentActivity() {
 
             HomeDroidTheme {
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize().verticalScroll(ScrollState(1000)),
                     color = MaterialTheme.colorScheme.primary
                 ) {
                     Column(modifier = Modifier.padding(horizontal = 8.dp)) {
-                        ProjectionState(
-                            carConnectionType = carConnectionType,
-                            modifier = Modifier.padding(8.dp)
-                        )
-                        groupComponent.ListOfGroup()
+                        groupComponent.GroupList(carConnectionType, groups = GroupRepository().getGroupItems())
                         dashboardComponent.Dashboard()
                         favoriteComponent.Favorite()
                         //PlaceList(places = PlacesRepository().getPlaces())
@@ -81,64 +78,49 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@Composable
-fun ProjectionState(carConnectionType: Int, modifier: Modifier = Modifier) {
-    val text = when (carConnectionType) {
-        CarConnection.CONNECTION_TYPE_NOT_CONNECTED -> "Not projecting"
-        CarConnection.CONNECTION_TYPE_NATIVE -> "Running on Android Automotive OS"
-        CarConnection.CONNECTION_TYPE_PROJECTION -> "Projecting"
-        else -> "Unknown connection type"
-    }
 
-    Text(
-        text = text,
-        style = MaterialTheme.typography.bodyMedium,
-        modifier = modifier
-    )
-}
 
-@Composable
-fun PlaceList(places: List<Place>) {
-    val context = LocalContext.current
-
-    LazyColumn {
-        items(places.size) {
-            val place = places[it]
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp)
-                    .border(
-                        2.dp,
-                        color = MaterialTheme.colorScheme.outline,
-                        shape = RoundedCornerShape(8.dp)
-                    )
-                    .clip(RoundedCornerShape(8.dp))
-                    .clickable {
-                        context.startActivity(place.toIntent(Intent.ACTION_VIEW))
-                    }
-                    .padding(8.dp)
-            ) {
-                Icon(
-                    Icons.Default.Place,
-                    "Place icon",
-                    modifier = Modifier.align(CenterVertically),
-                    tint = MaterialTheme.colorScheme.tertiary
-                )
-                Column {
-                    Text(
-                        text = place.name,
-                        style = MaterialTheme.typography.labelLarge
-                    )
-                    Text(
-                        text = place.description,
-                        style = MaterialTheme.typography.bodyMedium,
-                        overflow = TextOverflow.Ellipsis,
-                        maxLines = 2
-                    )
-                }
-
-            }
-        }
-    }
-}
+//@Composable
+//fun PlaceList(places: List<Place>) {
+//    val context = LocalContext.current
+//    LazyColumn {
+//        items(places.size) {
+//            val place = places[it]
+//            Row(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(8.dp)
+//                    .border(
+//                        2.dp,
+//                        color = MaterialTheme.colorScheme.outline,
+//                        shape = RoundedCornerShape(8.dp)
+//                    )
+//                    .clip(RoundedCornerShape(8.dp))
+//                    .clickable {
+//                        context.startActivity(place.toIntent(Intent.ACTION_VIEW))
+//                    }
+//                    .padding(8.dp)
+//            ) {
+//                Icon(
+//                    Icons.Default.Place,
+//                    "Place icon",
+//                    modifier = Modifier.align(CenterVertically),
+//                    tint = MaterialTheme.colorScheme.tertiary
+//                )
+//                Column {
+//                    Text(
+//                        text = place.name,
+//                        style = MaterialTheme.typography.labelLarge
+//                    )
+//                    Text(
+//                        text = place.description,
+//                        style = MaterialTheme.typography.bodyMedium,
+//                        overflow = TextOverflow.Ellipsis,
+//                        maxLines = 2
+//                    )
+//                }
+//
+//            }
+//         }
+//     }
+//}
