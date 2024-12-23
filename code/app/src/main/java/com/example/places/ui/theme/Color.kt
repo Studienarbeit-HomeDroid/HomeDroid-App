@@ -19,9 +19,9 @@ package com.example.places.ui.theme
 import androidx.compose.ui.graphics.Color
 
 
+
 val Yellow = Color(0xFFFDE303)
 val GroupColor = Color(0xFFDFE3E1)
-
 
 val SurfaceLigth = Color(0xFFF4FBF8)
 val ClearWhiteLigth = Color(0xFFFFFFFF)

@@ -4,33 +4,66 @@ import com.example.places.data.model.Device
 
 val DEVICES = listOf(
     // Physische Geräte
-    Device.PhysicalDevice(id = "1", name = "Thermostat", value = "22", unit = "°C"),
-    Device.PhysicalDevice(id = "2", name = "Lightbulb", value = "ON", unit = ""),
-    Device.PhysicalDevice(id = "3", name = "Fan", value = "Medium", unit = ""),
-    Device.PhysicalDevice(id = "4", name = "Refrigerator", value = "5", unit = "°C"),
-    Device.PhysicalDevice(id = "5", name = "Oven", value = "180", unit = "°C"),
+    Device.PhysicalDevice(
+        id = "1",
+        name = "Thermostat",
+        description = "Temperature",
+        value = "22",
+        unit = "°C",
+        isFavorite = false
+    ),
+    Device.PhysicalDevice(
+        id = "2",
+        name = "Lightbulb",
+        description = "Status",
+        value = "ON",
+        unit = "",
+        isFavorite = false
+    ),
+    Device.PhysicalDevice(
+        id = "3",
+        name = "Fan",
+        description = "Speed",
+        value = "Medium",
+        unit = "",
+        isFavorite = false
+    ),
+    Device.PhysicalDevice(
+        id = "4",
+        name = "Refrigerator",
+        description = "Temperature",
+        value = "5",
+        unit = "°C",
+        isFavorite = false
+    ),
+    Device.PhysicalDevice(
+        id = "5",
+        name = "Oven",
+        description = "Temperature",
+        value = "180",
+        unit = "°C",
+        isFavorite = false
+    ),
 
-    // Status-Geräte
-    Device.StatusDevice(id = "6", name = "Door Sensor", status = true),
-    Device.StatusDevice(id = "7", name = "Window Sensor", status = false),
-    Device.StatusDevice(id = "8", name = "Motion Detector", status = true),
-    Device.StatusDevice(id = "6", name = "Door Sensor", status = true),
-    Device.StatusDevice(id = "7", name = "Window Sensor", status = false),
-    Device.StatusDevice(id = "8", name = "Motion Detector", status = true),
-    Device.StatusDevice(id = "6", name = "Door Sensor", status = true),
-    Device.StatusDevice(id = "7", name = "Window Sensor", status = false),
+// Status-Geräte
+    Device.ActionDevice(id = "6", name = "Door Sensor", status = true, isFavorite = false),
+    Device.ActionDevice(id = "7", name = "Window Sensor", status = false, isFavorite = false),
+    Device.ActionDevice(id = "8", name = "Motion Detector", status = true, isFavorite = false),
+    Device.ActionDevice(id = "6", name = "Door Sensor", status = true, isFavorite = false),
+    Device.ActionDevice(id = "7", name = "Window Sensor", status = false, isFavorite = false),
+    Device.ActionDevice(id = "8", name = "Motion Detector", status = true, isFavorite = false),
+    Device.ActionDevice(id = "6", name = "Door Sensor", status = true, isFavorite = false),
+    Device.ActionDevice(id = "7", name = "Window Sensor", status = false, isFavorite = false)
 
 )
 
 class DeviceRepository {
 
-    fun getDevices(): List<Device>
-    {
+    fun getDevices(): List<Device> {
         return DEVICES;
     }
 
-    fun getDeviceById(deviceId: String): Device?
-    {
-        return DEVICES.find {it.id == deviceId }
+    fun getDeviceById(deviceId: String): Device? {
+        return DEVICES.find { it.id == deviceId }
     }
 }

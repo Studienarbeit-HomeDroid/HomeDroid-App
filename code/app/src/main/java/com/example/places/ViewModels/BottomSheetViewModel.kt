@@ -10,8 +10,7 @@ class BottomSheetViewModel : ViewModel() {
         openBottomSheet.value = !openBottomSheet.value
     }
 
-    fun getBottomSheetValue(): Boolean
-    {
+    fun getBottomSheetValue(): Boolean {
         return openBottomSheet.value
     }
 }

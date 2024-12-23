@@ -12,6 +12,8 @@ import androidx.car.app.model.TabContents
 import androidx.car.app.model.TabTemplate
 import androidx.car.app.model.Template
 import androidx.core.graphics.drawable.IconCompat
+import androidx.lifecycle.ViewModelProvider
+import com.example.places.ViewModels.FavoriteViewModel
 import com.example.places.carappservice.R
 import com.example.places.carappservice.components.TabInfo
 
@@ -20,7 +22,7 @@ import com.example.places.carappservice.components.TabInfo
     User Interface is representent by Template Classes
     Each Session manage a Stack of Screen instances
  */
-class MainScreen(carContext: CarContext) : Screen(carContext) {
+class MainScreen(carContext: CarContext, ) : Screen(carContext) {
 
     private val firstTab = TabInfo("first_tab", R.string.first_tab, R.drawable.home_tab)
     private val secondTab = TabInfo("second_tab", R.string.second_tab, R.drawable.favorite_foreground)
