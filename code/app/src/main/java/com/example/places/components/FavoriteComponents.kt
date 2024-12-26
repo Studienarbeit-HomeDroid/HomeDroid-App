@@ -1,10 +1,6 @@
 package com.example.places.components
 
 import android.os.Build
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,18 +13,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import com.example.places.data.model.Device
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
-import com.example.places.ViewModels.FavoriteViewModel
-import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
+import com.example.places.presentation.FavoriteViewModel
 
 
 class FavoriteComponents{
@@ -63,7 +51,7 @@ class FavoriteComponents{
                 ) {
                     rowItems.forEach {
                         when (it) {
-                            is Device.PhysicalDevice -> cardComponent.StatusCard(it)
+                            is Device.StatusDevice -> cardComponent.StatusCard(it)
                             is Device.ActionDevice -> cardComponent.ActionCard(it)
                         }
                     }

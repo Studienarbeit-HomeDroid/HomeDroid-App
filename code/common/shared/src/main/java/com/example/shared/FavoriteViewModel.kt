@@ -1,9 +1,9 @@
-package com.example.places.ViewModels
+package com.example.places.presentation
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.places.data.FavoriteRepository
+import com.example.places.data.interfaces.IFavoriteRepository
 import com.example.places.data.model.Device
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,7 +13,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class FavoriteViewModel @Inject constructor(
-    private val favoriteRepository: FavoriteRepository
+    private val favoriteRepository: IFavoriteRepository
 ) : ViewModel() {
 
     private val _favorites = MutableStateFlow<List<Device>>(emptyList())
@@ -23,14 +23,13 @@ class FavoriteViewModel @Inject constructor(
         loadFavorites()
     }
 
-    private fun loadFavorites() {
+     fun loadFavorites() {
         viewModelScope.launch {
             _favorites.value = favoriteRepository.getFavorites()
         }
     }
 
     fun addFavorite(item: Device) {
-        Log.i("Test", item.id)
         viewModelScope.launch {
             favoriteRepository.addFavorite(item)
             loadFavorites()
@@ -40,7 +39,7 @@ class FavoriteViewModel @Inject constructor(
     fun removeFavorite(item: Device) {
         viewModelScope.launch {
             favoriteRepository.removeFavorite(item)
-            loadFavorites() // Favoriten nach dem Entfernen neu laden
+            loadFavorites()
         }
     }
 

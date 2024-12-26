@@ -6,14 +6,11 @@ import androidx.car.app.Screen
 import androidx.car.app.annotations.ExperimentalCarApi
 import androidx.car.app.model.Action
 import androidx.car.app.model.CarIcon
-import androidx.car.app.model.MessageTemplate
 import androidx.car.app.model.Tab
 import androidx.car.app.model.TabContents
 import androidx.car.app.model.TabTemplate
 import androidx.car.app.model.Template
 import androidx.core.graphics.drawable.IconCompat
-import androidx.lifecycle.ViewModelProvider
-import com.example.places.ViewModels.FavoriteViewModel
 import com.example.places.carappservice.R
 import com.example.places.carappservice.components.TabInfo
 

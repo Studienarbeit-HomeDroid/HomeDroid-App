@@ -4,7 +4,7 @@ sealed class Device {
     abstract val id: String
     abstract val isFavorite: Boolean
 
-    data class PhysicalDevice(
+    data class StatusDevice(
         override val id: String = "",
         val name: String = "",
         val description: String = "",

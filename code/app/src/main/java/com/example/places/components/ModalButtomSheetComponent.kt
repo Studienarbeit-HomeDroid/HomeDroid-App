@@ -42,22 +42,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.places.ViewModels.FavoriteViewModel
+import com.example.places.presentation.FavoriteViewModel
 import com.example.places.data.model.Device
 import com.example.places.data.model.Group
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-class ModalButtomSheetComponent{
+class ModalButtomSheetComponent {
 
     @RequiresApi(Build.VERSION_CODES.Q)
     @OptIn(ExperimentalMaterial3Api::class)
@@ -66,8 +60,6 @@ class ModalButtomSheetComponent{
         ModalBottomSheet(
             onDismissRequest = { openButtomSheet.toggleBottomSheet() },
             modifier = Modifier.fillMaxHeight(),
-
-
         ) {
             Column(
                 modifier = Modifier
@@ -76,47 +68,40 @@ class ModalButtomSheetComponent{
                     .padding(bottom = 5.dp)
 
             ) {
-                androidx.compose.material3.Text(
+                Text(
                     text = group.name,
                     style = androidx.compose.material3.MaterialTheme.typography.bodyLarge,
                     modifier = Modifier
                         .padding(top = 13.dp)
                 )
-
-
-                androidx.compose.material3.Text(
+                Text(
                     text = "Geräte",
                     textAlign = TextAlign.Center,
                     style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(top = 8.dp)
                 )
-
                 LazyColumn {
                     items(group.devices) { devices ->
                         DeviceRow(devices)
                     }
                 }
-
-                androidx.compose.material3.Text(
+                Text(
                     text = "Status",
                     textAlign = TextAlign.Center,
                     style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(bottom = 8.dp)
 
                 )
-
-                ActionDevicesRow( group.devices)
+                ActionDevicesRow(group.devices)
             }
         }
     }
 
-
     @RequiresApi(Build.VERSION_CODES.Q)
     @SuppressLint("SuspiciousIndentation")
     @Composable
-    fun ActionDevicesRow( items: List<Device>)
-    {
-      val favoriteCardComponent: CardComponent = CardComponent()
+    fun ActionDevicesRow(items: List<Device>) {
+        val favoriteCardComponent: CardComponent = CardComponent()
 
         Column(
         ) {
@@ -126,8 +111,7 @@ class ModalButtomSheetComponent{
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     rowItems.forEach { item ->
-                        if(item is Device.ActionDevice)
-                        {
+                        if (item is Device.ActionDevice) {
                             favoriteCardComponent.ActionCard(item)
                         }
                     }
@@ -139,7 +123,7 @@ class ModalButtomSheetComponent{
     @OptIn(DelicateCoroutinesApi::class)
     @Composable
     fun DeviceRow(device: Device, viewModel: FavoriteViewModel = viewModel()) {
-        if (device is Device.PhysicalDevice) {
+        if (device is Device.StatusDevice) {
             var swipeOffset by remember { mutableStateOf(0f) }
             var isFavorite by remember { mutableStateOf(false) }
             val swipeThreshold = 60f // Schwelle für das vollständige Wischen
@@ -159,11 +143,10 @@ class ModalButtomSheetComponent{
                         }
                     }
             ) {
-                // Inhalt der Row
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .offset(x = swipeOffset.dp), // Verschiebung basierend auf dem Swipe
+                        .offset(x = swipeOffset.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -176,7 +159,6 @@ class ModalButtomSheetComponent{
                             tint = Color.Black,
                             modifier = Modifier.size(24.dp)
                         )
-
                         Text(
                             text = device.name,
                             style = MaterialTheme.typography.bodyLarge,
@@ -185,15 +167,12 @@ class ModalButtomSheetComponent{
                                 .align(Alignment.CenterStart)
                         )
                     }
-
                     Text(
                         text = "${device.value} ${device.unit}",
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.align(Alignment.CenterVertically)
                     )
                 }
-
-
                 if (swipeOffset <= -swipeThreshold) {
                     Box(
                         modifier = Modifier
@@ -202,18 +181,22 @@ class ModalButtomSheetComponent{
                             .align(Alignment.CenterEnd)
                             .clip(RoundedCornerShape(12.dp))
                             .clickable {
-                                if (viewModel.isFavorite(device))
-                                {
+                                if (viewModel.isFavorite(device)) {
                                     viewModel.removeFavorite(device)
-                                    Log.i("ADD TO FAVORITES",
-                                        viewModel.favorites.value.count().toString()
+                                    Log.i(
+                                        "ADD TO FAVORITES",
+                                        viewModel.favorites.value
+                                            .count()
+                                            .toString()
                                     )
 
-                                }else
-                                {
+                                } else {
                                     viewModel.addFavorite(device)
-                                    Log.i("ADD TO FAVORITES",
-                                        viewModel.favorites.value.count().toString()
+                                    Log.i(
+                                        "ADD TO FAVORITES",
+                                        viewModel.favorites.value
+                                            .count()
+                                            .toString()
                                     )
                                 }
                                 isFavorite = !isFavorite
@@ -225,20 +208,17 @@ class ModalButtomSheetComponent{
                         contentAlignment = Alignment.Center
                     ) {
 
-                            Icon(
-                                imageVector = if (viewModel.isFavorite(device)) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
-                                contentDescription = if (viewModel.isFavorite(device)) "Favorite" else "No Favorite",
-                                tint = Color.Black,
-                                modifier = Modifier
-                                    .fillMaxWidth(0.6F)
-                            )
-                        }
-
-
+                        Icon(
+                            imageVector = if (viewModel.isFavorite(device)) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                            contentDescription = if (viewModel.isFavorite(device)) "Favorite" else "No Favorite",
+                            tint = Color.Black,
+                            modifier = Modifier
+                                .fillMaxWidth(0.6F)
+                        )
+                    }
                 }
             }
         }
-
     }
 }
 

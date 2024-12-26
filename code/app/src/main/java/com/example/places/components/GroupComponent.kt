@@ -1,6 +1,8 @@
 package com.example.places.components
 
 import BottomSheetViewModel
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.car.app.connection.CarConnection
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -37,15 +39,14 @@ import com.example.places.ui.theme.HomeDroidTheme
 
 class GroupComponent() {
 
-
+    @RequiresApi(Build.VERSION_CODES.Q)
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun Group(group: Group) {
 
         val openButtomSheet: BottomSheetViewModel = BottomSheetViewModel()
         val modalButtomSheetComponent: ModalButtomSheetComponent = ModalButtomSheetComponent()
-        val sheetState = rememberModalBottomSheetState()
-
+        rememberModalBottomSheetState()
 
         HomeDroidTheme {
             Column(
@@ -67,7 +68,7 @@ class GroupComponent() {
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
-                    ){
+                    ) {
                         Icon(
                             imageVector = Icons.Outlined.Place,
                             contentDescription = "Favorite Icon",
@@ -95,6 +96,7 @@ class GroupComponent() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     @Composable
     fun GroupList(carConnectionType: Int, groups: List<Group>) {
         Row(
@@ -104,7 +106,9 @@ class GroupComponent() {
             Text(
                 text = "Gruppen",
                 style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(top = 13.dp).padding(bottom = 8.dp)
+                modifier = Modifier
+                    .padding(top = 13.dp)
+                    .padding(bottom = 8.dp)
             )
             ProjectionState(
                 carConnectionType = carConnectionType,
@@ -117,7 +121,7 @@ class GroupComponent() {
             modifier = Modifier.padding(end = 8.dp),
             horizontalArrangement = Arrangement.Center
         ) {
-            items(groups){ group ->
+            items(groups) { group ->
                 Group(group)
             }
         }

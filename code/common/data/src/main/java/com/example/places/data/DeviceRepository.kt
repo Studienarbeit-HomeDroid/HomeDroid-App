@@ -3,8 +3,7 @@ package com.example.places.data
 import com.example.places.data.model.Device
 
 val DEVICES = listOf(
-    // Physische Geräte
-    Device.PhysicalDevice(
+    Device.StatusDevice(
         id = "1",
         name = "Thermostat",
         description = "Temperature",
@@ -12,7 +11,7 @@ val DEVICES = listOf(
         unit = "°C",
         isFavorite = false
     ),
-    Device.PhysicalDevice(
+    Device.StatusDevice(
         id = "2",
         name = "Lightbulb",
         description = "Status",
@@ -20,7 +19,7 @@ val DEVICES = listOf(
         unit = "",
         isFavorite = false
     ),
-    Device.PhysicalDevice(
+    Device.StatusDevice(
         id = "3",
         name = "Fan",
         description = "Speed",
@@ -28,7 +27,7 @@ val DEVICES = listOf(
         unit = "",
         isFavorite = false
     ),
-    Device.PhysicalDevice(
+    Device.StatusDevice(
         id = "4",
         name = "Refrigerator",
         description = "Temperature",
@@ -36,7 +35,7 @@ val DEVICES = listOf(
         unit = "°C",
         isFavorite = false
     ),
-    Device.PhysicalDevice(
+    Device.StatusDevice(
         id = "5",
         name = "Oven",
         description = "Temperature",
@@ -45,7 +44,6 @@ val DEVICES = listOf(
         isFavorite = false
     ),
 
-// Status-Geräte
     Device.ActionDevice(id = "6", name = "Door Sensor", status = true, isFavorite = false),
     Device.ActionDevice(id = "7", name = "Window Sensor", status = false, isFavorite = false),
     Device.ActionDevice(id = "8", name = "Motion Detector", status = true, isFavorite = false),

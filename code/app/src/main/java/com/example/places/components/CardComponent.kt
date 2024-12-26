@@ -42,21 +42,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.places.ViewModels.FavoriteViewModel
+import com.example.places.presentation.FavoriteViewModel
 import com.example.places.data.model.Device
-import dagger.hilt.android.components.FragmentComponent
-import kotlinx.coroutines.DelicateCoroutinesApi
-import androidx.fragment.app.viewModels
 
 
 class CardComponent {
     @OptIn(ExperimentalFoundationApi::class)
     @RequiresApi(Build.VERSION_CODES.Q)
     @Composable
-    fun StatusCard(device: Device.PhysicalDevice, viewModel: FavoriteViewModel = viewModel()) {
+    fun StatusCard(device: Device.StatusDevice, viewModel: FavoriteViewModel = viewModel()) {
         var showDialog by remember { mutableStateOf(false) }
         val context = LocalContext.current
         val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
@@ -142,7 +137,7 @@ class CardComponent {
                 },
                 confirmButton = {
                     Button(onClick = {
-                        //viewModel.removeFavorite(device)
+                        viewModel.removeFavorite(device)
                         showDialog = false
 
                     }) {
@@ -161,7 +156,7 @@ class CardComponent {
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
-    @OptIn(DelicateCoroutinesApi::class, ExperimentalFoundationApi::class)
+    @OptIn(ExperimentalFoundationApi::class)
     @Composable
     fun ActionCard(device: Device.ActionDevice, viewModel: FavoriteViewModel = viewModel()) {
         val context = LocalContext.current
@@ -228,7 +223,11 @@ class CardComponent {
         }
         if (showDialog) {
             AlertDialog(
-                modifier = Modifier.blur(30.dp,30.dp, BlurredEdgeTreatment(RoundedCornerShape(13.dp))),
+                modifier = Modifier.blur(
+                    30.dp,
+                    30.dp,
+                    BlurredEdgeTreatment(RoundedCornerShape(13.dp))
+                ),
                 containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.95F),
                 onDismissRequest = { showDialog = false },
                 icon = {
@@ -254,15 +253,17 @@ class CardComponent {
                     if (viewModel.isFavorite(device)) Text("Favorit entfernen?") else Text("Favorit hinzufügen")
                 },
                 confirmButton = {
-                    Button(onClick = { showDialog = false }) {
+                    Button(
+                        onClick = {
+                            showDialog = false
+                            if (viewModel.isFavorite(device)) {
+                                viewModel.removeFavorite(device)
+                            } else {
+                                viewModel.addFavorite(device)
+                            }
+                        }
+                    ) {
                         Text("OK")
-                        if (viewModel.isFavorite(device))
-                        {
-                            viewModel.removeFavorite(device)
-                        }
-                        else{
-                            viewModel.addFavorite(device)
-                        }
                     }
                 },
                 dismissButton = {

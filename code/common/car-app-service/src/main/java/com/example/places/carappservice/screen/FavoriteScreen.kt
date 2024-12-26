@@ -8,83 +8,72 @@ import androidx.car.app.model.GridItem
 import androidx.car.app.model.GridTemplate
 import androidx.car.app.model.ItemList
 import androidx.car.app.model.Template
-import androidx.compose.runtime.Composable
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelStore
-import androidx.lifecycle.ViewModelStoreOwner
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.places.ViewModels.FavoriteViewModel
 import com.example.places.carappservice.BitMapGenerator
+import com.example.places.data.FavoriteRepository
 import com.example.places.data.model.Device
-import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.awaitCancellation
-import kotlinx.coroutines.launch
-import javax.inject.Inject
-fun Screen.getViewModelStoreOwner(): ViewModelStoreOwner {
-    val viewModelStoreOwner = object : ViewModelStoreOwner {
-        override val viewModelStore = ViewModelStore()
-    }
-    lifecycleScope.launch {
-        try {
-            awaitCancellation()
-        } finally {
-            viewModelStoreOwner.viewModelStore.clear()
-        }
-    }
-    return viewModelStoreOwner
-}
+import kotlinx.coroutines.runBlocking
 
 
 class FavoriteScreen(carContext: CarContext) : Screen(carContext) {
 
-    val bitMapGenerator: BitMapGenerator = BitMapGenerator(carContext)
+    private val bitMapGenerator: BitMapGenerator = BitMapGenerator(carContext)
+    private val favoriteRepository: FavoriteRepository = FavoriteRepository()
+    private lateinit var itemList: ItemList
 
+    private suspend fun getGridItems(): ItemList {
+        try {
+            val favorites = favoriteRepository.getFavorites()
+            val itemList = ItemList.Builder()
+            favorites.map { device ->
+                when (device) {
+                    is Device.StatusDevice -> {
+                        val firstItem =
+                            GridItem.Builder().setTitle(device.name).setText(device.description)
+                                .setImage(
+                                    bitMapGenerator.createTextAsIcon("${device.value}${device.unit}")
+                                ).setOnClickListener {
+                                showToast()
+                            }.build()
+                        itemList.addItem(firstItem)
+                    }
 
-    val viewModelStoreOwner = getViewModelStoreOwner()
-    private val viewModel =  ViewModelProvider(viewModelStoreOwner)[FavoriteViewModel::class]
-    val fav = viewModel.favorites.value
-
-    init {
-        lifecycleScope.launch {
-            viewModel.favorites.collect {
-                invalidate()
+                    is Device.ActionDevice -> {
+                        val firstItem = GridItem.Builder().setTitle(device.name).setImage(
+                            bitMapGenerator.createTextAsIcon("${device.status}")
+                        ).setOnClickListener {
+                            showToast()
+                        }.build()
+                        itemList.addItem(firstItem)
+                    }
+                }
             }
+            return itemList.build()
         }
-    }
-
-
-
-    fun getGridItems(): ItemList {
-
-        Log.i("ADD TO FAVORITES",
-            fav.count().toString()
-        )
-
-        val itemList = ItemList.Builder()
-        for (device in fav)
+        catch (e: Exception)
         {
-            if(device is Device.PhysicalDevice) {
-                val firstItem = GridItem.Builder().setTitle(device.name).setText(device.description).setImage(
-                    bitMapGenerator.createTextAsIcon("${device.value}${device.unit}")
-                ).setOnClickListener {
-                    val toast = CarToast.makeText(
-                        carContext,
-                        "Status wurde aktualisiert",
-                        CarToast.LENGTH_SHORT
-                    )
-                    toast.show()
-                }.build()
-
-                itemList.addItem(firstItem)
-            }
+            Log.e("GET_GRID_ITEMS", "Error loading favorites", e)
+            return ItemList.Builder().build()
         }
-
-        return itemList.build()
     }
 
     override fun onGetTemplate(): Template {
-        val gridTemplate = GridTemplate.Builder().setTitle("Hello").setLoading(false)
-        return gridTemplate.setSingleList(getGridItems()).build()
+        val items = runBlocking {
+            getGridItems()
+        }
+        itemList = items
+        invalidate()
+        return GridTemplate.Builder()
+            .setLoading(false)
+            .setSingleList(itemList)
+            .build()
+    }
+
+    private  fun showToast() {
+        val toast = CarToast.makeText(
+            carContext,
+            "Status wurde aktualisiert",
+            CarToast.LENGTH_SHORT
+        )
+        toast.show()
     }
 }
