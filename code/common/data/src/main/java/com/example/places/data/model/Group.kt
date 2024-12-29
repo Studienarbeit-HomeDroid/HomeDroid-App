@@ -22,6 +22,7 @@ import androidx.core.net.toUri
 data class Group(
     val id: Int,
     val name: String,
+    val iconUrl: String?,
     val devices: List<Device>
 )
 

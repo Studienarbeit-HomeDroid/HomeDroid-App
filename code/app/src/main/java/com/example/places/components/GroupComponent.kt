@@ -1,7 +1,9 @@
 package com.example.places.components
 
 import BottomSheetViewModel
+import android.graphics.Insets.add
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.car.app.connection.CarConnection
 import androidx.compose.foundation.clickable
@@ -31,13 +33,26 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import coil.ImageLoader
+import coil.compose.AsyncImage
+import coil.decode.SvgDecoder
+import coil.disk.DiskCache
+import coil.memory.MemoryCache
+import coil.request.CachePolicy
+import coil.request.ImageRequest
+import com.example.android.cars.places.R
 import com.example.places.data.model.Group
 import com.example.places.ui.theme.HomeDroidTheme
+import okhttp3.Dispatcher
+import okhttp3.OkHttpClient
+import okhttp3.internal.addHeaderLenient
 
 class GroupComponent() {
+
 
     @RequiresApi(Build.VERSION_CODES.Q)
     @OptIn(ExperimentalMaterial3Api::class)
@@ -46,7 +61,40 @@ class GroupComponent() {
 
         val openButtomSheet: BottomSheetViewModel = BottomSheetViewModel()
         val modalButtomSheetComponent: ModalButtomSheetComponent = ModalButtomSheetComponent()
+        val context = LocalContext.current
+        val placeholder = R.drawable.house_logo
+        var imageRequest = ImageRequest.Builder(context)
+            .setHeader(
+                "Authorization",
+                "Bearer 8g6VEeStqwc9Wyge9ZX9z9VfMsQQH8INco74FIrQsv3BsprZudWkFdKJlPduwi1D"
+            )
+            .data(group.iconUrl)
+            .memoryCacheKey(group.iconUrl)
+            .diskCacheKey(group.iconUrl)
+            .placeholder(placeholder)
+            .error(placeholder)
+            .fallback(placeholder)
+            .diskCachePolicy(CachePolicy.ENABLED)
+            .memoryCachePolicy(CachePolicy.ENABLED)
+            .build()
+
+
         rememberModalBottomSheetState()
+        val imageLoader = ImageLoader.Builder(LocalContext.current)
+            .okHttpClient {
+                OkHttpClient.Builder()
+                    .addInterceptor { chain ->
+                        val request = chain.request().newBuilder()
+                            .addHeader(
+                                "Authorization",
+                                "Bearer 8g6VEeStqwc9Wyge9ZX9z9VfMsQQH8INco74FIrQsv3BsprZudWkFdKJlPduwi1D"
+                            )
+                            .build()
+                        chain.proceed(request)
+                    }
+                    .build()
+            }
+            .build()
 
         HomeDroidTheme {
             Column(
@@ -69,12 +117,24 @@ class GroupComponent() {
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Place,
-                            contentDescription = "Favorite Icon",
-                            tint = Color.Black,
-                            modifier = Modifier.size(30.dp)
-                        )
+
+
+                        if (!group.iconUrl.isNullOrBlank()) {
+
+                            AsyncImage(
+                                model = imageRequest,
+                                contentDescription = "Icon from URL",
+                                modifier = Modifier.size(30.dp),
+                            )
+                            Log.i("ASYNCIMAGE LOADED", group.id.toString())
+
+                        } else {
+                            Icon(
+                                imageVector = Icons.Outlined.Place,
+                                contentDescription = "Icon from URL",
+                                modifier = Modifier.size(30.dp)
+                            )
+                        }
                     }
                 }
 
@@ -95,6 +155,7 @@ class GroupComponent() {
             }
         }
     }
+
 
     @RequiresApi(Build.VERSION_CODES.Q)
     @Composable

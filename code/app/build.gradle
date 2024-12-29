@@ -20,6 +20,7 @@ plugins {
     id 'kotlin-kapt'
     id 'com.google.dagger.hilt.android'
     id 'com.google.gms.google-services'
+    id 'org.jetbrains.kotlin.plugin.compose'
 
 }
 
@@ -31,7 +32,7 @@ android {
 
     defaultConfig {
         applicationId "com.example.android.cars.places"
-        minSdk 23
+        minSdk 24
         targetSdk 35
         versionCode 1
         versionName "1.0"
@@ -115,6 +116,12 @@ dependencies {
     //Firebase
     implementation platform('com.google.firebase:firebase-bom:33.7.0')
     implementation 'com.google.firebase:firebase-analytics'
+
+    //Coil dynamic icons
+    implementation "io.coil-kt:coil-compose:2.3.0"
+    implementation "io.coil-kt:coil-svg:2.4.0"
+
+
 
 }
 

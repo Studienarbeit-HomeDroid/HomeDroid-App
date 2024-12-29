@@ -9,7 +9,7 @@ import androidx.car.app.model.GridTemplate
 import androidx.car.app.model.ItemList
 import androidx.car.app.model.Template
 import com.example.places.carappservice.BitMapGenerator
-import com.example.places.data.FavoriteRepository
+import com.example.places.data.repositories.FavoriteRepository
 import com.example.places.data.model.Device
 import kotlinx.coroutines.runBlocking
 

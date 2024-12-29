@@ -2,7 +2,6 @@ package com.example.places.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.places.data.FavoriteRepository
 import com.example.places.data.interfaces.IFavoriteRepository
 import com.example.places.data.model.Device
 import dagger.hilt.android.lifecycle.HiltViewModel

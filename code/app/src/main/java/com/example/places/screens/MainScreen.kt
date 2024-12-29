@@ -16,7 +16,7 @@ import androidx.activity.ComponentActivity
 import com.example.places.components.DashboardComponent
 import com.example.places.components.FavoriteComponents
 import com.example.places.components.GroupComponent
-import com.example.places.data.GroupRepository
+import com.example.places.data.repositories.GroupRepository
 import com.example.places.ui.theme.HomeDroidTheme
 import dagger.hilt.android.AndroidEntryPoint
 

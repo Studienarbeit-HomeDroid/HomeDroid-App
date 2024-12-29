@@ -1,7 +1,6 @@
 package com.example.shared
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import com.example.places.data.FavoriteRepository
 import com.example.places.presentation.FavoriteViewModel
 import com.example.places.data.interfaces.IFavoriteRepository
 import com.example.places.data.model.Device
@@ -12,12 +11,9 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.Before
-import org.junit.jupiter.api.BeforeEach
 import org.junit.Rule
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
 import org.mockito.Mock
-import org.mockito.Mockito
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
