@@ -17,22 +17,24 @@
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <uses-permission android:name="android.permission.VIBRATE"/>
 
     <application
+        android:name="com.example.places.HomeDroidApplication"
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Places">
+        android:theme="@style/Theme.HomeDroids">
 
         <meta-data
             android:name="com.google.android.gms.car.application"
             android:resource="@xml/automotive_app_desc" />
 
         <activity
-            android:name="com.example.places.MainActivity"
+            android:name="com.example.places.MainApp"
             android:exported="true"
-            android:theme="@style/Theme.Places">
+            android:theme="@style/Theme.HomeDroids">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

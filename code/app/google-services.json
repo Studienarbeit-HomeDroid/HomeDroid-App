@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1098997751662",
+    "project_id": "homedroid-728c6",
+    "storage_bucket": "homedroid-728c6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1098997751662:android:8288ac0cd53088e0edab7f",
+        "android_client_info": {
+          "package_name": "com.example.android.cars.places"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCPcF-NZNu_DTYRBz4tYVDml8meh2pULEs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

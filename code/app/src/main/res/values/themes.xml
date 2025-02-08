@@ -17,5 +17,5 @@
 
 <resources>
 
-    <style name="Theme.Places" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.HomeDroids" parent="android:Theme.Material.Light.NoActionBar" />
 </resources>

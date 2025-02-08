@@ -28,7 +28,8 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "Places"
+rootProject.name = "HomeDroid"
 include ':app'
 include ':common:data'
 include ':common:car-app-service'
+include ':common:shared'
