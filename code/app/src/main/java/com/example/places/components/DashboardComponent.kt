@@ -23,6 +23,9 @@ import com.example.places.ui.theme.HomeDroidTheme
 
 class DashboardComponent {
 
+    /**
+     * Displays the Dashboard Card, which displays the important information's of the website
+     */
     @Composable
     fun Dashboard() {
         HomeDroidTheme {
@@ -44,6 +47,9 @@ class DashboardComponent {
             ) {
 
                 Column {
+                    /**
+                     * Displays the last update time of the Dashboard data's
+                     */
                     Text(
                         text = "1.10.24 | 16:12:22",
                         style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),

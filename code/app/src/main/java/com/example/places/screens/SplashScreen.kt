@@ -21,6 +21,10 @@ import com.example.android.cars.places.R
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 
+/**
+ * Loading Screen activity which serves as the entry point for the app's loading UI.
+ */
+
 @SuppressLint("CustomSplashScreen")
 @AndroidEntryPoint
 class SplashScreen : ComponentActivity() {

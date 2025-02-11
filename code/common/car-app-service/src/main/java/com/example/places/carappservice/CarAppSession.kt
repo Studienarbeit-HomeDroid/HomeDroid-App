@@ -5,7 +5,9 @@ import androidx.car.app.Screen
 import androidx.car.app.Session
 import com.example.places.carappservice.screen.MainScreen
 
-//Instance of a client app running on a display in the vehicle
+/**
+ * Instance of a client app running on a display in the vehicle
+ */
 class CarAppSession : Session() {
 
 

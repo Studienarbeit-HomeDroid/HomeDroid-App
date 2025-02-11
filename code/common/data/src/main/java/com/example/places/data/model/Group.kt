@@ -20,10 +20,10 @@ import android.content.Intent
 import androidx.core.net.toUri
 
 data class Group(
-    val id: Int,
-    val name: String,
-    val iconUrl: String?,
-    val devices: List<Device>
+    val id: Int = 0,
+    val name: String = "",
+    val iconUrl: String? = "",
+    var devices: MutableList<Device> = mutableListOf()
 )
 
 //fun Place.toIntent(action: String): Intent {

@@ -2,7 +2,7 @@ package com.example.places.data.model
 
 sealed class Device {
     abstract val id: String
-    abstract val isFavorite: Boolean
+    abstract val group: String
 
     data class StatusDevice(
         override val id: String = "",
@@ -10,16 +10,24 @@ sealed class Device {
         val description: String = "",
         val value: String = "",
         val unit: String = "",
-        override val isFavorite: Boolean = false
-    ) : Device()
+        override val group: String = ""
+    ) : Device() {
 
-    // No-Argument Konstruktor hinzufügen
+    }
+
     data class ActionDevice(
         override val id: String = "",
         val name: String = "",
         val status: Boolean = false,
-        override val isFavorite: Boolean = false
+        override val group: String = ""
     ) : Device()
+
+    data class TemperatureDevice(
+        override val id: String = "",
+        val name: String = "",
+        val value: String = "",
+        override val group: String = ""
+        ): Device()
 }
 
 

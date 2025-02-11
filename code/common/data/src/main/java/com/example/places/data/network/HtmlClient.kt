@@ -44,7 +44,8 @@ class HtmlClient {
 
     suspend fun getIcon(icon: String): String? {
         val iconfinderApiUrl =
-            "https://api.iconfinder.com/v4/icons/search?query=${icon}&count=1&premium=false&style=solid"
+            "https://api.iconfinder.com/v4/icons/search?query=${icon}&count=1&premium=false&style=filled-outline"
+        Log.i("API URL",iconfinderApiUrl)
         val bearerToken = "8g6VEeStqwc9Wyge9ZX9z9VfMsQQH8INco74FIrQsv3BsprZudWkFdKJlPduwi1D"
         val request = Request.Builder()
             .header("Authorization", "Bearer $bearerToken")

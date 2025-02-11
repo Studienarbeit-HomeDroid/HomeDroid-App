@@ -20,7 +20,6 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.result.launch
 import androidx.annotation.RequiresApi
 import androidx.car.app.connection.CarConnection
 import androidx.compose.runtime.LaunchedEffect
@@ -29,42 +28,57 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewModelScope
+import com.example.places.data.model.Group
 import com.example.places.data.parser.HtmlParser
+import com.example.places.data.repositories.GroupRepository
 import com.example.places.screens.MainScreen
 import com.example.places.screens.SplashScreen
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
+/**
+ * Main application activity responsible for initializing and managing the app's UI and core processes.
+ */
 
 @AndroidEntryPoint
 class MainApp : ComponentActivity() {
     private val splashActivity: SplashScreen = SplashScreen()
     private val mainActivity: MainScreen = MainScreen()
-    private val htmlParser: HtmlParser = HtmlParser()
+    private lateinit var htmlParser: HtmlParser
+    private val groupRepository: GroupRepository = GroupRepository()
+
+    /**
+     * Entry point of the activity. Sets up the UI and initializes background tasks.
+     */
 
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        htmlParser = HtmlParser(context = this)
 
+        /**
+         * Perform background operations such as checking HTML changes and loading groups.
+         * After the background operations are completed, set the showSplash variable to false
+         */
         setContent {
             val carConnectionType by CarConnection(this).type.observeAsState(initial = -1)
             var showSplash by remember { mutableStateOf(true) }
+            var groups by remember { mutableStateOf(emptyList<Group>()) }
+
             LaunchedEffect(Unit) {
                 withContext(Dispatchers.IO) {
-                    htmlParser.parseHtml() // Warten, bis der Parser fertig ist
+                    htmlParser.checkHtmlChanges()
+                    groups = groupRepository.getGroupItems()
                 }
-                showSplash = false // Splash-Screen beenden, nachdem der Parser fertig ist
+                showSplash = false
             }
 
             if (showSplash) {
-                splashActivity.SplashScreen {
-                    // Keine direkte Änderung von `showSplash` hier
+                splashActivity.SplashScreen{
                 }
             } else {
-                mainActivity.MainContent(carConnectionType)
+                mainActivity.MainScreen(carConnectionType, groups)
             }
         }
     }

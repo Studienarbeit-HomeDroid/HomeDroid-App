@@ -6,24 +6,35 @@ import androidx.car.app.CarToast
 import androidx.car.app.Screen
 import androidx.car.app.model.GridItem
 import androidx.car.app.model.GridTemplate
+import androidx.car.app.model.Item
 import androidx.car.app.model.ItemList
 import androidx.car.app.model.Template
+import androidx.compose.runtime.LaunchedEffect
 import com.example.places.carappservice.BitMapGenerator
 import com.example.places.data.repositories.FavoriteRepository
 import com.example.places.data.model.Device
 import kotlinx.coroutines.runBlocking
 
+/**
+ * A screen that displays a list of favorite devices in a grid layout.
+ */
 
 class FavoriteScreen(carContext: CarContext) : Screen(carContext) {
 
-    private val bitMapGenerator: BitMapGenerator = BitMapGenerator(carContext)
+    private val bitMapGenerator: BitMapGenerator = BitMapGenerator()
     private val favoriteRepository: FavoriteRepository = FavoriteRepository()
-    private lateinit var itemList: ItemList
+    private lateinit var itemList: ItemList.Builder
 
+    /**
+     * Retrieves the grid items representing favorite devices.
+     *
+     * @return An ItemList containing GridItems for each favorite device.
+     */
     private suspend fun getGridItems(): ItemList {
         try {
             val favorites = favoriteRepository.getFavorites()
-            val itemList = ItemList.Builder()
+            Log.d("GET_GRID_ITEMS", "Favorites: $favorites")
+            itemList = ItemList.Builder()
             favorites.map { device ->
                 when (device) {
                     is Device.StatusDevice -> {
@@ -36,7 +47,6 @@ class FavoriteScreen(carContext: CarContext) : Screen(carContext) {
                             }.build()
                         itemList.addItem(firstItem)
                     }
-
                     is Device.ActionDevice -> {
                         val firstItem = GridItem.Builder().setTitle(device.name).setImage(
                             bitMapGenerator.createTextAsIcon("${device.status}")
@@ -45,6 +55,8 @@ class FavoriteScreen(carContext: CarContext) : Screen(carContext) {
                         }.build()
                         itemList.addItem(firstItem)
                     }
+
+                    is Device.TemperatureDevice -> {}
                 }
             }
             return itemList.build()
@@ -56,15 +68,22 @@ class FavoriteScreen(carContext: CarContext) : Screen(carContext) {
         }
     }
 
+    /**
+     * Provides the template for the screen.
+     *
+     * @return A GridTemplate containing the favorite devices.
+     */
+
     override fun onGetTemplate(): Template {
-        val items = runBlocking {
-            getGridItems()
+        val items: ItemList
+        runBlocking {
+            items = getGridItems()
         }
-        itemList = items
+        Log.i("GET_GRID_ITEMS", "itemList: ${items}")
         invalidate()
         return GridTemplate.Builder()
             .setLoading(false)
-            .setSingleList(itemList)
+            .setSingleList(items)
             .build()
     }
 

@@ -15,118 +15,150 @@
  */
 
 plugins {
+    // Android application plugin
     id 'com.android.application'
+    // Kotlin plugin for Android
     id 'org.jetbrains.kotlin.android'
+    // Kotlin annotation processing tool (KAPT) plugin
     id 'kotlin-kapt'
+    // Dagger Hilt plugin for dependency injection
     id 'com.google.dagger.hilt.android'
+    // Google services plugin for Firebase and other services
     id 'com.google.gms.google-services'
+    // Jetpack Compose plugin for building UI with Kotlin
     id 'org.jetbrains.kotlin.plugin.compose'
-
 }
 
-
-
 android {
+    // Namespace for the application package
     namespace 'com.example.android.cars.places'
+    // Setting the SDK version to compile against
     compileSdk 35
 
     defaultConfig {
+        // Application ID that uniquely identifies the app
         applicationId "com.example.android.cars.places"
+        // Minimum SDK version required to run the app
         minSdk 24
+        // Target SDK version the app is optimized for
         targetSdk 35
+        // Version code for the application
         versionCode 1
+        // Version name for the application
         versionName "1.0"
 
+        // Custom test instrumentation runner
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        // Enabling vector drawable support
         vectorDrawables {
             useSupportLibrary true
         }
     }
 
     buildTypes {
+        // Configuration for release build
         release {
+            // Disable minification for release
             minifyEnabled false
+            // Proguard files for code obfuscation and optimization
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
     compileOptions {
+        // Java 8 compatibility
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
     kotlinOptions {
+        // Kotlin JVM target version
         jvmTarget = '1.8'
     }
+
     buildFeatures {
+        // Enable Jetpack Compose
         compose true
     }
+
     composeOptions {
+        // Set the Kotlin compiler extension version for Compose
         kotlinCompilerExtensionVersion '1.5.15'
     }
+
     packagingOptions {
         resources {
+            // Exclude specific licenses from packaging
             excludes += '/META-INF/{AL2.0,LGPL2.1}'
         }
     }
 }
 
 dependencies {
-    // Jetpack Compose BOM für Versionen
+    // Jetpack Compose BOM for version management
     implementation platform("androidx.compose:compose-bom:$compose_bom")
 
-    // Grundlegende Jetpack Compose Abhängigkeiten
+    // Core KTX extensions for Android components
     implementation 'androidx.core:core-ktx:1.10.0'
+    // Lifecycle runtime KTX extensions
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.1'
+    // ViewModel Compose integration
     implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.6.0'
+    // Activity Compose integration
     implementation 'androidx.activity:activity-compose:1.7.1'
+    // Jetpack Compose runtime with LiveData support
     implementation "androidx.compose.runtime:runtime-livedata"
+    // Core Jetpack Compose UI dependencies
     implementation "androidx.compose.ui:ui"
+    // Compose UI tooling for debugging and previews
     implementation "androidx.compose.ui:ui-tooling-preview"
+    // Fragment KTX support for fragments
     implementation "androidx.fragment:fragment-ktx:1.6.0"
 
-
-    // Material2 für ModalBottomSheet (Experimentell)
+    // Material2 for ModalBottomSheet (Experimental feature)
     implementation "androidx.compose.material:material:$compose_version"
 
-    // Coroutines für ModalBottomSheet
+    // Kotlin Coroutines for background tasks (e.g., used in ModalBottomSheet)
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.0"
 
-    // Dein Projekt-Modul
+    // Your project's data module
     implementation project(path: ':common:data')
+    // Material3 library for the latest UI components
     implementation 'androidx.compose.material3:material3-android:1.3.1'
 
-    // Test-Abhängigkeiten
+    // Unit testing dependencies
     testImplementation 'junit:junit:4.13.2'
+    // Android test dependencies
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    // Jetpack Compose testing dependencies
     androidTestImplementation "androidx.compose.ui:ui-test-junit4"
+    // Debugging Compose UI tests and tooling
     debugImplementation "androidx.compose.ui:ui-tooling"
     debugImplementation "androidx.compose.ui:ui-test-manifest"
 
-    // Weitere Projekt-Abhängigkeit
+    // Additional project dependencies
     implementation project(path: ':common:car-app-service')
     implementation project(':common:shared')
 
-    // Car App Bibliothek
+    // Car App library for integration with Android Auto
     implementation "androidx.car.app:app:$car_app_library_version"
 
-    //Hilt
+    // Dagger Hilt for dependency injection
     implementation "com.google.dagger:hilt-android:2.51.1"
     kapt "com.google.dagger:hilt-compiler:2.51.1"
 
-    //Firebase
+    // Firebase dependencies
     implementation platform('com.google.firebase:firebase-bom:33.7.0')
     implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.firebase:firebase-auth-ktx:22.0.0'
 
-    //Coil dynamic icons
+    // Coil library for image loading (including dynamic icons support)
     implementation "io.coil-kt:coil-compose:2.3.0"
     implementation "io.coil-kt:coil-svg:2.4.0"
-
-
-
 }
 
 kapt {
+    // Enable error correction for annotation processing
     correctErrorTypes true
 }
-
-

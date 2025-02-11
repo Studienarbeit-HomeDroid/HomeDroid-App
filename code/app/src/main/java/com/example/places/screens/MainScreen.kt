@@ -1,5 +1,6 @@
 package com.example.places.screens
 
+import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ScrollState
@@ -16,9 +17,14 @@ import androidx.activity.ComponentActivity
 import com.example.places.components.DashboardComponent
 import com.example.places.components.FavoriteComponents
 import com.example.places.components.GroupComponent
-import com.example.places.data.repositories.GroupRepository
+import com.example.places.data.model.Group
 import com.example.places.ui.theme.HomeDroidTheme
 import dagger.hilt.android.AndroidEntryPoint
+
+/**
+ * Main screen activity which serves as the entry point for the app's main UI.
+ * It organizes the layout by including different components such as the GroupList, Dashboard, and Favorites.
+ */
 
 @AndroidEntryPoint
 class MainScreen : ComponentActivity() {
@@ -26,11 +32,11 @@ class MainScreen : ComponentActivity() {
     private val dashboardComponent = DashboardComponent()
     private val favoriteComponent = FavoriteComponents()
 
+    @SuppressLint("NotConstructor")
     @RequiresApi(Build.VERSION_CODES.Q)
     @Composable
-    fun MainContent(carConnectionType: Int = 0) {
+    fun MainScreen(carConnectionType: Int = 0, groups: List<Group> = emptyList()) {
         HomeDroidTheme {
-
             Surface(
                 modifier = Modifier
                     .fillMaxSize()
@@ -40,7 +46,7 @@ class MainScreen : ComponentActivity() {
                 Column(modifier = Modifier.padding(horizontal = 8.dp)) {
                     groupComponent.GroupList(
                         carConnectionType,
-                        groups = GroupRepository().getGroupItems()
+                        groups = groups
                     )
                     dashboardComponent.Dashboard()
                     favoriteComponent.Favorite()

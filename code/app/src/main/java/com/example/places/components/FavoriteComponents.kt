@@ -1,6 +1,7 @@
 package com.example.places.components
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -35,11 +36,20 @@ class FavoriteComponents{
         ListOfFavorites()
     }
 
+    /**
+     * ListOfFavorites is a composable function that displays a grid of favorite devices,
+     * organized in rows with a specified number of items per row.
+     * Dynamically renders a list of favorite devices retrieved from the ViewModel's `favorites` state.
+     *
+     * @param viewModel The ViewModel responsible for managing favorite devices. Defaults to the current `FavoriteViewModel`.
+     *
+     */
     @RequiresApi(Build.VERSION_CODES.Q)
     @Composable
     fun ListOfFavorites(viewModel: FavoriteViewModel = viewModel()) {
         val items by viewModel.favorites.collectAsState()
         val itemsPerRow = 3
+        Log.i("FAVORITES", "$items")
 
         Column(
             modifier = Modifier.padding(8.dp)
@@ -51,8 +61,8 @@ class FavoriteComponents{
                 ) {
                     rowItems.forEach {
                         when (it) {
-                            is Device.StatusDevice -> cardComponent.StatusCard(it)
-                            is Device.ActionDevice -> cardComponent.ActionCard(it)
+                            is Device.ActionDevice -> cardComponent.ActionDeviceCard(it)
+                            else -> cardComponent.TempAndStatusDeviceCard(it)
                         }
                     }
                 }

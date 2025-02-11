@@ -14,7 +14,7 @@ import androidx.core.graphics.drawable.IconCompat
 import com.example.places.carappservice.R
 import com.example.places.carappservice.components.TabInfo
 
-/*
+/**
     Generates the user Inferfaces
     User Interface is representent by Template Classes
     Each Session manage a Stack of Screen instances

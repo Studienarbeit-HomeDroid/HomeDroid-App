@@ -46,12 +46,23 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.places.presentation.FavoriteViewModel
 import com.example.places.data.model.Device
 
-
 class CardComponent {
+
+    /**
+     * Displays Temperature and Status Device Card for the Favorite Section
+     * @param device The device object to be displayed, which can be either a StatusDevice or a TemperatureDevice.
+     * @param viewModel The ViewModel responsible for managing favorite devices. Defaults to the current `FavoriteViewModel`.
+     *
+     * Interactions:
+     * - Click: Reserved for future functionality (currently no action).
+     * - Long Click:
+     *   - Displays a dialog to confirm the removal of the device as a favorite.
+     *   - Provides haptic feedback via vibration.
+     */
     @OptIn(ExperimentalFoundationApi::class)
     @RequiresApi(Build.VERSION_CODES.Q)
     @Composable
-    fun StatusCard(device: Device.StatusDevice, viewModel: FavoriteViewModel = viewModel()) {
+    fun TempAndStatusDeviceCard(device: Device, viewModel: FavoriteViewModel = viewModel()) {
         var showDialog by remember { mutableStateOf(false) }
         val context = LocalContext.current
         val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
@@ -62,7 +73,7 @@ class CardComponent {
                 .padding(5.dp)
                 .combinedClickable(
                     onClick = {
-
+                        /**Only Need because of the attributes of "combinedClickable"*/
                     },
                     onLongClick = {
                         showDialog = true
@@ -83,34 +94,63 @@ class CardComponent {
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
-                    Text(
-                        text = device.name,
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontWeight = FontWeight.Bold
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 10.dp)
-                            .padding(top = 3.dp),
-                        textAlign = TextAlign.Start
-                    )
-                    Text(
-                        text = device.description,
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                        color = Color.Gray,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 10.dp)
-                            .padding(top = 3.dp),
-                        textAlign = TextAlign.Start
-                    )
+                    if (device is Device.StatusDevice) {
+                        Text(
+                            text = device.name,
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontWeight = FontWeight.Bold
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 10.dp)
+                                .padding(top = 3.dp),
+                            textAlign = TextAlign.Start
+                        )
+                        Text(
+                            text = device.group,
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                            color = Color.Gray,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 10.dp)
+                                .padding(top = 3.dp),
+                            textAlign = TextAlign.Start
+                        )
+                    }else if (device is Device.TemperatureDevice)
+                    {
+                        Text(
+                            text = device.name,
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontWeight = FontWeight.Bold
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 10.dp)
+                                .padding(top = 3.dp),
+                            textAlign = TextAlign.Start
+                        )
+
+                        Text(
+                            text = device.group,
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                            color = Color.Gray,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 10.dp)
+                                .padding(top = 3.dp),
+                            textAlign = TextAlign.Start
+                        )
+                    }
                 }
                 Text(
-                    text = "${device.value} ${device.unit}",
+                    text = when (device) {
+                        is Device.StatusDevice -> "${device.value} ${device.unit}"
+                        is Device.TemperatureDevice -> "${device.value} °C"
+                        else -> "Unknown Type"
+                    },
                     style = MaterialTheme.typography.bodySmall.copy(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
-
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -120,6 +160,9 @@ class CardComponent {
                 )
             }
         }
+        /**
+         * Dialog to confirm the removal of the device as a favorite
+         */
         if (showDialog) {
             AlertDialog(
                 onDismissRequest = { showDialog = false },
@@ -137,9 +180,10 @@ class CardComponent {
                 },
                 confirmButton = {
                     Button(onClick = {
-                        viewModel.removeFavorite(device)
+                        if (device is Device.StatusDevice || device is Device.TemperatureDevice) {
+                            viewModel.removeFavorite(device)
+                        }
                         showDialog = false
-
                     }) {
                         Text("OK")
                     }
@@ -155,10 +199,21 @@ class CardComponent {
         }
     }
 
+    /**
+     * Displays Action Device Card for the Favorite and Status Sections of the different Groups
+     * @param device The device object to be displayed, which must be an ActionDevice.
+     * @param viewModel The ViewModel responsible for managing favorite devices. Defaults to the current `FavoriteViewModel`.
+     *
+     * Interactions:
+     * - Click: Toggles the state of the device between "on" and "off".
+     * - Long Click:
+     *   - Opens a dialog to add or remove the device as a favorite.
+     *   - Provides haptic feedback via vibration.
+     */
     @RequiresApi(Build.VERSION_CODES.Q)
     @OptIn(ExperimentalFoundationApi::class)
     @Composable
-    fun ActionCard(device: Device.ActionDevice, viewModel: FavoriteViewModel = viewModel()) {
+    fun ActionDeviceCard(device: Device.ActionDevice, viewModel: FavoriteViewModel = viewModel()) {
         val context = LocalContext.current
         val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         var showDialog by remember { mutableStateOf(false) }
@@ -197,7 +252,7 @@ class CardComponent {
                     modifier = Modifier
                         .fillMaxHeight()
                         .padding(start = 10.dp),
-                    verticalArrangement = Arrangement.Top // Text nach oben ausrichten
+                    verticalArrangement = Arrangement.Top
                 ) {
                     Text(
                         text = device.name,
@@ -210,7 +265,7 @@ class CardComponent {
                         textAlign = TextAlign.Start
                     )
                     Text(
-                        text = "ein",
+                        text = "On",
                         style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                         color = Color.Gray,
                         modifier = Modifier
@@ -250,7 +305,7 @@ class CardComponent {
                     }
                 },
                 title = {
-                    if (viewModel.isFavorite(device)) Text("Favorit entfernen?") else Text("Favorit hinzufügen")
+                    if (viewModel.isFavorite(device)) Text("Favorit entfernen") else Text("Favorit hinzufügen")
                 },
                 confirmButton = {
                     Button(

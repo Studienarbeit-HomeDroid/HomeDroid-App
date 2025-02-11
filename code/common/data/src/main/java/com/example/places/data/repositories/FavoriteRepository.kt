@@ -28,7 +28,8 @@ class FavoriteRepository @Inject constructor() : IFavoriteRepository {
                     when (type) {
                         "StatusDevice" -> snapshot.getValue(Device.StatusDevice::class.java)
                         "ActionDevice" -> snapshot.getValue(Device.ActionDevice::class.java)
-                        else -> null
+                        "TemperatureDevice" -> snapshot.getValue(Device.TemperatureDevice::class.java)
+                        else -> {null}
                     }
                 }
                 return favorites
@@ -53,7 +54,7 @@ class FavoriteRepository @Inject constructor() : IFavoriteRepository {
                         "description" to it.description,
                         "value" to it.value,
                         "unit" to it.unit,
-                        "isFavorite" to it.isFavorite
+                        "group" to it.group
                     )
                 }
                 is Device.ActionDevice -> {
@@ -62,7 +63,17 @@ class FavoriteRepository @Inject constructor() : IFavoriteRepository {
                         "id" to it.id,
                         "name" to it.name,
                         "status" to it.status,
-                        "isFavorite" to it.isFavorite
+                        "group" to it.group
+
+                    )
+                }
+                is Device.TemperatureDevice -> {
+                    mapOf(
+                        "type" to "TemperatureDevice",
+                        "id" to it.id,
+                        "name" to it.name,
+                        "value" to it.value,
+                        "group" to it.group
                     )
                 }
             }

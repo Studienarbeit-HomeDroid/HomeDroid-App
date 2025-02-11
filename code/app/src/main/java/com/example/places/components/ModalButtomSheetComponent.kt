@@ -53,6 +53,13 @@ import kotlinx.coroutines.launch
 
 class ModalButtomSheetComponent {
 
+    /**
+     * Displays a ModalBottomSheet for a specific group.
+     *
+     * @param openButtomSheet The ViewModel controlling the sheet's visibility.
+     * @param group The group whose details and devices are displayed in the sheet.
+     */
+
     @RequiresApi(Build.VERSION_CODES.Q)
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
@@ -66,45 +73,51 @@ class ModalButtomSheetComponent {
                     .padding(start = 15.dp)
                     .padding(end = 15.dp)
                     .padding(bottom = 5.dp)
-
             ) {
                 Text(
                     text = group.name,
-                    style = androidx.compose.material3.MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier
                         .padding(top = 13.dp)
                 )
-                Text(
-                    text = "Geräte",
-                    textAlign = TextAlign.Center,
-                    style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-                LazyColumn {
-                    items(group.devices) { devices ->
-                        DeviceRow(devices)
+                if(group.devices.filterIsInstance<Device.TemperatureDevice>().isNotEmpty()) {
+                    Text(
+                        text = "Temperatur",
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                    LazyColumn {
+                        items(group.devices.filterIsInstance<Device.TemperatureDevice>()) { devices ->
+                            DeviceRow(devices)
+                        }
                     }
                 }
                 Text(
                     text = "Status",
                     textAlign = TextAlign.Center,
-                    style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(bottom = 8.dp)
-
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(top = 8.dp)
                 )
+                LazyColumn {
+                    items(group.devices.filterIsInstance<Device.StatusDevice>()) { devices ->
+                        DeviceRow(devices)
+                    }
+                }
                 ActionDevicesRow(group.devices)
             }
         }
     }
 
+    /**
+     * Creates a row of action devices.
+     */
     @RequiresApi(Build.VERSION_CODES.Q)
-    @SuppressLint("SuspiciousIndentation")
     @Composable
     fun ActionDevicesRow(items: List<Device>) {
-        val favoriteCardComponent: CardComponent = CardComponent()
+        val favoriteCardComponent = CardComponent()
 
-        Column(
-        ) {
+        Column{
             items.chunked(4).forEach { rowItems ->
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -112,7 +125,7 @@ class ModalButtomSheetComponent {
                 ) {
                     rowItems.forEach { item ->
                         if (item is Device.ActionDevice) {
-                            favoriteCardComponent.ActionCard(item)
+                            favoriteCardComponent.ActionDeviceCard(item)
                         }
                     }
                 }
@@ -120,104 +133,121 @@ class ModalButtomSheetComponent {
         }
     }
 
+    /**
+     * Creates a row for a Status and Temperature device.
+     */
     @OptIn(DelicateCoroutinesApi::class)
     @Composable
     fun DeviceRow(device: Device, viewModel: FavoriteViewModel = viewModel()) {
-        if (device is Device.StatusDevice) {
-            var swipeOffset by remember { mutableStateOf(0f) }
-            var isFavorite by remember { mutableStateOf(false) }
-            val swipeThreshold = 60f // Schwelle für das vollständige Wischen
-            val maxSwipe = 80f // Maximale Verschiebung
+        var swipeOffset by remember { mutableStateOf(0f) }
+        var isFavorite by remember { mutableStateOf(false) }
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(45.dp)
-                    .padding(6.dp)
-                    .pointerInput(Unit) {
-                        detectHorizontalDragGestures { _, dragAmount ->
-                            swipeOffset = (swipeOffset + dragAmount).coerceIn(
-                                -maxSwipe,
-                                0f
-                            )
-                        }
+        /**
+         * Point of show the favorite button
+         */
+        val swipeThreshold = 60f
+
+        /**
+         * Maximum swipe distance
+         */
+        val maxSwipe = 80f
+
+        /**
+         * - Uses `pointerInput` to detect horizontal drag gestures:
+         *  - Updates `swipeOffset` based on the drag amount.
+         *  - Constrains the offset to stay within -maxSwipe and 0.
+         */
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(45.dp)
+                .padding(6.dp)
+                .pointerInput(Unit) {
+                    detectHorizontalDragGestures { _, dragAmount ->
+                        swipeOffset = (swipeOffset + dragAmount).coerceIn(-maxSwipe, 0f)
                     }
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .offset(x = swipeOffset.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier.padding(vertical = 5.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Add,
-                            contentDescription = "Plus Icon",
-                            tint = Color.Black,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Text(
-                            text = device.name,
-                            style = MaterialTheme.typography.bodyLarge,
-                            modifier = Modifier
-                                .padding(start = 40.dp)
-                                .align(Alignment.CenterStart)
-                        )
-                    }
-                    Text(
-                        text = "${device.value} ${device.unit}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.align(Alignment.CenterVertically)
+                }
+        ) {
+            when (device) {
+                is Device.StatusDevice -> {
+                    RowContent(
+                        name = device.name,
+                        value = device.value,
+                        unit = device.unit,
+                        swipeOffset
                     )
                 }
-                if (swipeOffset <= -swipeThreshold) {
-                    Box(
-                        modifier = Modifier
-                            .height(50.dp)
-                            .width(50.dp)
-                            .align(Alignment.CenterEnd)
-                            .clip(RoundedCornerShape(12.dp))
-                            .clickable {
-                                if (viewModel.isFavorite(device)) {
-                                    viewModel.removeFavorite(device)
-                                    Log.i(
-                                        "ADD TO FAVORITES",
-                                        viewModel.favorites.value
-                                            .count()
-                                            .toString()
-                                    )
+                is Device.TemperatureDevice -> {
+                    RowContent(
+                        name = device.name,
+                        value = device.value,
+                        unit = "°C",
+                        swipeOffset
+                    )
+                }
 
-                                } else {
-                                    viewModel.addFavorite(device)
-                                    Log.i(
-                                        "ADD TO FAVORITES",
-                                        viewModel.favorites.value
-                                            .count()
-                                            .toString()
-                                    )
-                                }
-                                isFavorite = !isFavorite
-                                GlobalScope.launch {
-                                    delay(1000)
-                                    swipeOffset = 0F
-                                }
-                            },
-                        contentAlignment = Alignment.Center
-                    ) {
+                is Device.ActionDevice -> {}
+            }
 
-                        Icon(
-                            imageVector = if (viewModel.isFavorite(device)) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
-                            contentDescription = if (viewModel.isFavorite(device)) "Favorite" else "No Favorite",
-                            tint = Color.Black,
-                            modifier = Modifier
-                                .fillMaxWidth(0.6F)
-                        )
-                    }
+            /**
+             * If the swipe offset is less than -swipeThreshold, the favorite button is shown
+             */
+            if (swipeOffset <= -swipeThreshold) {
+                Box(
+                    modifier = Modifier
+                        .height(50.dp)
+                        .width(50.dp)
+                        .align(Alignment.CenterEnd)
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable {
+                            if (viewModel.isFavorite(device)) {
+                                viewModel.removeFavorite(device)
+                            } else {
+                                viewModel.addFavorite(device)
+                                Log.i("DEVICES CLICKED", device.toString())
+
+                            }
+                            isFavorite = !isFavorite
+                            GlobalScope.launch {
+                                delay(1000)
+                                swipeOffset = 0F
+                            }
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = if (viewModel.isFavorite(device)) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                        contentDescription = if (viewModel.isFavorite(device)) "Favorite" else "No Favorite",
+                        tint = Color.Black,
+                        modifier = Modifier.fillMaxWidth(0.6F)
+                    )
                 }
             }
+        }
+    }
+
+
+    @Composable
+    fun RowContent(name: String, value: String, unit: String, swipeOffset: Float) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .offset(x = swipeOffset.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+
+                Text(
+                    text = name,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier
+                )
+
+            Text(
+                text = "$value $unit",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.align(Alignment.CenterVertically)
+            )
         }
     }
 }
