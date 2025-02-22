@@ -35,7 +35,7 @@ class HtmlClient {
                 null
             }
         } catch (e: IOException) {
-            Log.i("DATA FROM SERVER", e.toString())
+            Log.i("DATA FROM SERVER", "Request failed with code: ${e.message}")
             e.printStackTrace()
             null
         }

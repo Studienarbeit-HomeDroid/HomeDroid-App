@@ -44,6 +44,7 @@ import kotlinx.coroutines.withContext
 @AndroidEntryPoint
 class MainApp : ComponentActivity() {
     private val splashActivity: SplashScreen = SplashScreen()
+    private var htmlIsLoaded: Boolean = false;
     private val mainActivity: MainScreen = MainScreen()
     private lateinit var htmlParser: HtmlParser
     private val groupRepository: GroupRepository = GroupRepository()
@@ -68,7 +69,7 @@ class MainApp : ComponentActivity() {
 
             LaunchedEffect(Unit) {
                 withContext(Dispatchers.IO) {
-                    htmlParser.checkHtmlChanges()
+                    htmlIsLoaded = htmlParser.checkHtmlChanges()
                     groups = groupRepository.getGroupItems()
                 }
                 showSplash = false
@@ -78,7 +79,7 @@ class MainApp : ComponentActivity() {
                 splashActivity.SplashScreen{
                 }
             } else {
-                mainActivity.MainScreen(carConnectionType, groups)
+                mainActivity.MainScreen(carConnectionType, groups, htmlIsLoaded)
             }
         }
     }

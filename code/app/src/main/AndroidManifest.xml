@@ -30,6 +30,16 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.HomeDroids">
 
+        <service
+            android:name="com.example.places.carappservice.CarAppService"
+            android:exported="true"
+            >
+            <intent-filter>
+                <action android:name="androidx.car.app.CarAppService"/>
+                <category android:name="androidx.car.app.category.MEDIA"/>
+            </intent-filter>
+        </service>
+
         <meta-data
             android:name="com.google.android.gms.car.application"
             android:resource="@xml/automotive_app_desc" />
@@ -43,6 +53,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <meta-data android:name="androidx.car.app.minCarApiLevel"
+            android:value="1" />
+
+
     </application>
 
 </manifest>

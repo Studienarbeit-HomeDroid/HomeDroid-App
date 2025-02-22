@@ -20,17 +20,22 @@ class HtmlParser(context: Context) {
     /*
 
      */
-    suspend fun checkHtmlChanges()
+    suspend fun checkHtmlChanges():Boolean
     {
-        val newHtml = client.getHtml().toString()
-        val currentHash = hashHtml(newHtml)
-        val savedHash = sharedPreferences.getString("htmlHash", null)
+        val newHtml = client.getHtml()
+        Log.i("DATA FROM SERVER", "checkHtmlChanges: $newHtml")
+        if(newHtml != null)
+        {
+            val currentHash = hashHtml(newHtml)
+            val savedHash = sharedPreferences.getString("htmlHash", null)
 
-        if (savedHash != currentHash) {
-            sharedPreferences.edit().putString("htmlHash", currentHash).apply()
-            this.html = newHtml
-            parseHtml()
+            if (savedHash != currentHash) {
+                sharedPreferences.edit().putString("htmlHash", currentHash).apply()
+                parseHtml(newHtml)
+            }
+            return true
         }
+        return false
     }
 
     private fun hashHtml(html: String): String {
@@ -39,8 +44,7 @@ class HtmlParser(context: Context) {
         return hashBytes.joinToString("") { "%02x".format(it) }
     }
 
-    suspend fun parseHtml() {
-        this.html = client.getHtml().toString()
+    suspend fun parseHtml(html: String) {
         Log.i("DATA FROM SERVER", this.html)
         val doc: com.fleeksoft.ksoup.nodes.Document = Ksoup.parse(html = html)
         groupRepository.deleteGroupTabel()
