@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace 'com.example.places.carappservice'
+    namespace 'com.homedroid.carappservice'
     compileSdk 35
 
     defaultConfig {
