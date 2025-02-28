@@ -22,7 +22,7 @@ plugins {
     id "org.jetbrains.kotlin.plugin.serialization"}
 
 android {
-    namespace 'com.example.android.cars.data'
+    namespace 'com.homedroid.data'
     compileSdk 34
 
     defaultConfig {

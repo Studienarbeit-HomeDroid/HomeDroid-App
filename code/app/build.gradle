@@ -31,13 +31,13 @@ plugins {
 
 android {
     // Namespace for the application package
-    namespace 'com.example.android.cars.places'
+    namespace 'com.homedroid.app'
     // Setting the SDK version to compile against
     compileSdk 35
 
     defaultConfig {
         // Application ID that uniquely identifies the app
-        applicationId "com.example.android.cars.places"
+        applicationId "com.homedroid.app"
         // Minimum SDK version required to run the app
         minSdk 24
         // Target SDK version the app is optimized for
