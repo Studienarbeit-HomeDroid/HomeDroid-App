@@ -4,7 +4,7 @@
     "type": "APK",
     "kind": "Directory"
   },
-  "applicationId": "com.example.android.cars.places",
+  "applicationId": "com.homedroid.app",
   "variantName": "release",
   "elements": [
     {
