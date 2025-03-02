@@ -40,6 +40,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name="com.homedroid.carappservice.MyCarAppService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="androidx.car.app.action.CAR_APP" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

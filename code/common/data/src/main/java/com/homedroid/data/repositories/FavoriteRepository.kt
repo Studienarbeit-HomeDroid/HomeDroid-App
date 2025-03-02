@@ -1,108 +1,129 @@
 package com.homedroid.data.repositories
 
 import android.util.Log
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import com.homedroid.data.interfaces.IFavoriteRepository
 import com.homedroid.data.model.Device
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.DatabaseReference
-import dagger.Module
-import dagger.Provides
-import dagger.hilt.InstallIn
-import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
-class FavoriteRepository @Inject constructor() : IFavoriteRepository {
+class FavoriteRepository @Inject constructor(
+    private val database: FirebaseDatabase // Inject FirebaseDatabase
+) : IFavoriteRepository {
 
-    private val database: FirebaseDatabase = FirebaseDatabase.getInstance()
+    private var userId: String = "user123"
     private val favoritesRef: DatabaseReference = database.getReference("favorites")
-    private val userId = "user123"
 
-    override suspend fun getFavorites(): List<Device> {
-        return try {
-            val dataSnapshot = favoritesRef.child(userId).get().await()
+    private fun deviceToMap(device: Device): Map<String, Any?> {
+        return when (device) {
+            is Device.StatusDevice -> mapOf(
+                "type" to "StatusDevice",
+                "id" to device.id,
+                "name" to device.name,
+                "description" to device.description,
+                "value" to device.value,
+                "unit" to device.unit,
+                "group" to device.group
+            )
+            is Device.ActionDevice -> mapOf(
+                "type" to "ActionDevice",
+                "id" to device.id,
+                "name" to device.name,
+                "status" to device.status,
+                "group" to device.group
+            )
+            is Device.TemperatureDevice -> mapOf(
+                "type" to "TemperatureDevice",
+                "id" to device.id,
+                "name" to device.name,
+                "value" to device.value,
+                "group" to device.group
+            )
+        }
+    }
 
-            if (dataSnapshot.exists()) {
+    // Echtzeit-Flow für Favoriten
+     override  suspend fun getFavoritesFlow(): Flow<List<Device>> = callbackFlow {
+        val listener = object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
                 val favorites = dataSnapshot.children.mapNotNull { snapshot ->
                     val type = snapshot.child("type").getValue(String::class.java)
                     when (type) {
                         "StatusDevice" -> snapshot.getValue(Device.StatusDevice::class.java)
                         "ActionDevice" -> snapshot.getValue(Device.ActionDevice::class.java)
                         "TemperatureDevice" -> snapshot.getValue(Device.TemperatureDevice::class.java)
-                        else -> {null}
+                        else -> {
+                            Log.w("Firebase", "Unbekannter Typ: $type")
+                            null
+                        }
                     }
                 }
-                return favorites
-            } else {
-                Log.i("Firebase", "Keine Favoriten gefunden.")
-                emptyList()
+                trySend(favorites).isSuccess
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("Firebase", "Fehler beim Abruf: $error")
+                trySend(emptyList()).isSuccess
+            }
+        }
+
+        favoritesRef.child(userId).addValueEventListener(listener)
+        awaitClose {
+            favoritesRef.child(userId).removeEventListener(listener)
+        }
+    }
+
+    // Hilfsfunktion für einmaligen Abruf der aktuellen Liste
+    private suspend fun getCurrentFavorites(): List<Device> {
+        return try {
+            val dataSnapshot = favoritesRef.child(userId).get().await()
+            dataSnapshot.children.mapNotNull { snapshot ->
+                val type = snapshot.child("type").getValue(String::class.java)
+                when (type) {
+                    "StatusDevice" -> snapshot.getValue(Device.StatusDevice::class.java)
+                    "ActionDevice" -> snapshot.getValue(Device.ActionDevice::class.java)
+                    "TemperatureDevice" -> snapshot.getValue(Device.TemperatureDevice::class.java)
+                    else -> null
+                }
             }
         } catch (e: Exception) {
-            Log.e("Firebase", e.toString())
+            Log.e("Firebase", "Fehler beim einmaligen Abruf: $e")
             emptyList()
         }
     }
 
+    // Speichere Favoriten in Firebase
     suspend fun saveFavorites(favorites: List<Device>) {
-        val dataToSave = favorites.map {
-            when (it) {
-                is Device.StatusDevice -> {
-                    mapOf(
-                        "type" to "StatusDevice",
-                        "id" to it.id,
-                        "name" to it.name,
-                        "description" to it.description,
-                        "value" to it.value,
-                        "unit" to it.unit,
-                        "group" to it.group
-                    )
-                }
-                is Device.ActionDevice -> {
-                    mapOf(
-                        "type" to "ActionDevice",
-                        "id" to it.id,
-                        "name" to it.name,
-                        "status" to it.status,
-                        "group" to it.group
-
-                    )
-                }
-                is Device.TemperatureDevice -> {
-                    mapOf(
-                        "type" to "TemperatureDevice",
-                        "id" to it.id,
-                        "name" to it.name,
-                        "value" to it.value,
-                        "group" to it.group
-                    )
-                }
-            }
+        try {
+            val dataToSave = favorites.associateBy({ it.id }, { deviceToMap(it) })
+            favoritesRef.child(userId).setValue(dataToSave).await()
+        } catch (e: Exception) {
+            Log.e("Firebase", "Fehler beim Speichern der Favoriten: $e")
+            throw e // Optional: Fehler weitergeben
         }
-        favoritesRef.child(userId).setValue(dataToSave).await()
     }
 
     override suspend fun addFavorite(device: Device) {
-        val favorites = getFavorites()
-        Log.i("Anzahl", favorites.size.toString())
-        if (!favorites.contains(device)) {
-            val updatedFavorites = favorites.toMutableList().apply { add(device) }
+        val currentFavorites = getCurrentFavorites() // Einmaliger Abruf
+        if (currentFavorites.none { it.id == device.id }) { // Prüfe auf Duplikate
+            val updatedFavorites = currentFavorites + device
             saveFavorites(updatedFavorites)
+        } else {
+            Log.i("FavoriteRepository", "Device ${device.id} ist bereits ein Favorit.")
         }
     }
 
     override suspend fun removeFavorite(device: Device) {
-        val favorites = getFavorites()
-        val updatedFavorites = favorites.filterNot { it.id == device.id }
+        val currentFavorites = getCurrentFavorites()
+        val updatedFavorites = currentFavorites.filterNot { it.id == device.id }
         saveFavorites(updatedFavorites)
     }
 }
 
-@Module
-@InstallIn(SingletonComponent::class)
-object FavoriteRepositoryModule {
-
-    @Provides
-    fun provideFavoriteRepository(): IFavoriteRepository {
-        return FavoriteRepository()
-    }
-}

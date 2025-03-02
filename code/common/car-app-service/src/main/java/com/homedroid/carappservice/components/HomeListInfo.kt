@@ -5,7 +5,7 @@ import androidx.annotation.StringRes
 
 data class HomeListInfo(
     val listId: String,
-    @StringRes val title: Int,
+    val title: String,
     val desciption: String,
     @DrawableRes val icon: Int
 )

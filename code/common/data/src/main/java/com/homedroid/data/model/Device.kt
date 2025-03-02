@@ -8,7 +8,7 @@ sealed class Device {
         override val id: String = "",
         val name: String = "",
         val description: String = "",
-        val value: String = "",
+        val value: String = "1",
         val unit: String = "",
         override val group: String = ""
     ) : Device() {

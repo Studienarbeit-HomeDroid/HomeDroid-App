@@ -1,5 +1,7 @@
 package com.homedroid.app.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -7,19 +9,26 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.SensorDoor
+import androidx.compose.material.icons.outlined.SensorDoor
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.homedroid.app.ui.theme.HomeDroidTheme
+import com.homedroid.app.viewmodel.DashboardViewModel
 
 class DashboardComponent {
 
@@ -27,7 +36,8 @@ class DashboardComponent {
      * Displays the Dashboard Card, which displays the important information's of the website
      */
     @Composable
-    fun Dashboard() {
+    fun Dashboard( viewModel: DashboardViewModel = viewModel()) {
+        val dashboardData = viewModel.dashboardData
         HomeDroidTheme {
             Text(
                 text = "Dashboard",
@@ -60,98 +70,43 @@ class DashboardComponent {
                             .padding(top = 5.dp),
                         textAlign = TextAlign.End
                     )
-                    Row(
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .padding(top = 10.dp)
-                    ) {
-                        Box(
-                            Modifier.size(width = 110.dp, height = 110.dp)
+                    dashboardData.chunked(3).forEach { data ->
 
-                        )
-                        {
-                            Column {
-                                BoxHeaderText("Haustür")
-                                BoxDescriptionText("offen")
+                        Row(
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally)
+                                .padding(top = 10.dp)
+                        ) {
+                            data.forEach { data ->
+                                Box(
+                                    Modifier.size(width = 110.dp, height = 110.dp)
+                                )
+                                {
+                                    Column {
+                                        BoxHeaderText(data.title)
+                                        BoxDescriptionText(data.subtitle.get(0))
+                                        if (data.values.isNotEmpty()) {
+                                            if(data.id.equals("1"))
+                                            {
+                                                BoxImageValue(data.values.get(0))
+                                            }
+                                            else
+                                            {
+                                                BoxValueText(data.values.get(0), data.unit)
+                                            }
+                                        }
+                                        if (data.subtitle.size == 2) {
+                                            BoxDescriptionText(data.subtitle.get(1))
+                                            BoxValueText(data.values.get(1), data.unit)
+                                        }
+                                    }
+                                }
                             }
                         }
-
-                        Box(
-                            Modifier.size(width = 110.dp, height = 110.dp),
-                        )
-                        {
-                            Column {
-                                BoxHeaderText("Fenster")
-                                BoxDescriptionText("unverriegelt")
-                                BoxValueText("2")
-                            }
-                        }
-
-                        Box(
-                            Modifier.size(width = 110.dp, height = 110.dp),
-                        )
-                        {
-                            Column {
-                                BoxHeaderText("Türen")
-                                BoxDescriptionText("unverriegelt")
-                                BoxValueText("2")
-                                BoxDescriptionText("offen")
-                                BoxValueText("3")
-
-                            }
-                        }
-
-                    }
-
-                    Row(
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .padding(top = 10.dp)
-                    ) {
-                        Box(
-                            Modifier.size(width = 110.dp, height = 110.dp)
-                        )
-                        {
-                            Column {
-                                BoxHeaderText("Strom")
-                                BoxDescriptionText("bezug")
-                                BoxValueText("32")
-                                BoxDescriptionText("lieferung")
-                                BoxValueText("322")
-                            }
-                        }
-
-                        Box(
-                            Modifier.size(width = 110.dp, height = 110.dp),
-                        )
-                        {
-                            Column {
-                                BoxHeaderText("Zähler")
-                                BoxDescriptionText("bezug")
-                                BoxValueText("32")
-                                BoxDescriptionText("lieferung")
-                                BoxValueText("322")
-                            }
-                        }
-
-                        Box(
-                            Modifier.size(width = 110.dp, height = 110.dp),
-                        )
-                        {
-                            Column {
-                                BoxHeaderText("Solar")
-                                BoxDescriptionText("tages")
-                                BoxValueText("12")
-                                BoxDescriptionText("gesamt")
-                                BoxValueText("3222")
-                            }
-                        }
-
                     }
                 }
             }
         }
-
     }
 
     @Composable
@@ -183,17 +138,50 @@ class DashboardComponent {
     }
 
     @Composable
-    fun BoxValueText(value: String) {
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodySmall.copy(
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
+    fun BoxImageValue(value: String)
+    {
+        val icons: ImageVector = if (value.equals("offen")) Icons.Outlined.SensorDoor  else Icons.Filled.SensorDoor
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .size(100.dp)
+                .background(Color.Transparent)
+        ) {
+                Icon(
+                    imageVector = icons,
+                    contentDescription = "Favorite Icon",
+                    modifier = Modifier
+                        .size(40.dp)
+                        .align(Alignment.TopCenter)
+                )
+        }
+    }
 
-            ),
+    @Composable
+    fun BoxValueText(value: String, unit: String) {
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.Bottom
+        ) {
+            Text(
+                text = value,
+                style = MaterialTheme.typography.bodySmall.copy(
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
+                ),
+                textAlign = TextAlign.Center
+            )
 
-        )
+            Text(
+                text = unit,
+                style = MaterialTheme.typography.bodySmall.copy(
+                    fontSize = 8.sp,
+                    fontWeight = FontWeight.Thin
+                ),
+                modifier = Modifier.padding(start = 4.dp), // Abstand zwischen den Texten
+                textAlign = TextAlign.Start
+            )
+        }
     }
 }

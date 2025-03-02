@@ -44,11 +44,11 @@ class FavoriteViewModelTest {
     @org.junit.Test
     fun loadFavorites_isCorrect(): Unit = runTest {
         val expectedFavorites = listOf(Device.StatusDevice("1"), Device.ActionDevice("2"))
-        `when`(favoriteRepository.getFavorites()).thenReturn(expectedFavorites)
+        `when`(favoriteRepository.getFavoritesFlow()).thenReturn(expectedFavorites)
         viewModel.loadFavorites()
         advanceUntilIdle()
         assertEquals(expectedFavorites, viewModel.favorites.value)
-        verify(favoriteRepository, times(2)).getFavorites()
+        verify(favoriteRepository, times(2)).getFavoritesFlow()
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -57,7 +57,7 @@ class FavoriteViewModelTest {
         val newFavorite = Device.StatusDevice("3")
         val expectedFavorites = listOf(newFavorite)
 
-        `when`(favoriteRepository.getFavorites()).thenReturn(expectedFavorites)
+        `when`(favoriteRepository.getFavoritesFlow()).thenReturn(expectedFavorites)
 
         viewModel.addFavorite(newFavorite)
         advanceUntilIdle()
@@ -74,7 +74,7 @@ class FavoriteViewModelTest {
         val expectedFavorites = mutableListOf(Device.StatusDevice("3"), Device.ActionDevice("2"))
         expectedFavorites.remove(itemToRemove)
 
-        `when`(favoriteRepository.getFavorites()).thenReturn(expectedFavorites)
+        `when`(favoriteRepository.getFavoritesFlow()).thenReturn(expectedFavorites)
 
         viewModel.removeFavorite(itemToRemove)
         advanceUntilIdle()

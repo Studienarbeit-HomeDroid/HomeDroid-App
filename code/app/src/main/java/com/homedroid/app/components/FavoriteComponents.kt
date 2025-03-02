@@ -17,7 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.homedroid.data.model.Device
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.homedroid.app.presentation.FavoriteViewModel
+import com.homedroid.app.viewmodel.FavoriteViewModel
 
 
 class FavoriteComponents{
