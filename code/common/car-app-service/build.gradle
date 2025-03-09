@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace 'com.example.places.carappservice'
+    namespace 'com.homedroid.carappservice'
     compileSdk 35
 
     defaultConfig {
@@ -42,9 +42,9 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7'
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7"
     implementation 'androidx.core:core-ktx:1.15.0'
-    implementation project(':common:shared')
 
     implementation 'androidx.car.app:app:1.4.0'
+    implementation 'com.google.firebase:firebase-database-ktx:21.0.0'
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
