@@ -16,4 +16,5 @@
 
 <resources>
     <string name="app_name">HomeDroid</string>
+    <string name="google_client_id">1098997751662-mk1oam8bbu90m76ctt1nikjaf24999u0.apps.googleusercontent.com</string>
 </resources>

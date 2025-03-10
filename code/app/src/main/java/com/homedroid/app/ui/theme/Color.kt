@@ -21,12 +21,14 @@ import androidx.compose.ui.graphics.Color
 
 
 val Yellow = Color(0xFFFDE303)
-val GroupColor = Color(0xFFDFE3E1)
 
 val SurfaceLigth = Color(0xFFF4FBF8)
 val ClearWhiteLigth = Color(0xFFFFFFFF)
 val FontColorLight = Color(0xFF000000)
+val GroupColorLight = Color(0xFFDFE3E1)
 
-val SurfaceDark = Color(0xFF121212)
-val ClearWhiteDark = Color(0xFF222222)
+
+val SurfaceDark = Color(0xFF212121)
+val ClearWhiteDark = Color(0xFF333232)
 val FontColorDark = Color(0xFFFFFFFF)
+val GroupColorDark = Color(0xFF333232)

@@ -35,7 +35,7 @@ private val DarkColorScheme = darkColorScheme(
     secondary = ClearWhiteDark,
     tertiary = Yellow,
     onBackground = FontColorDark,
-    surfaceVariant = GroupColor
+    surfaceVariant = GroupColorDark
 )
 
 private val LightColorScheme = lightColorScheme(
@@ -44,14 +44,14 @@ private val LightColorScheme = lightColorScheme(
     secondary = ClearWhiteLigth,
     tertiary = Yellow,
     onBackground = FontColorLight,
-    surfaceVariant = GroupColor
+    surfaceVariant = GroupColorLight
 
 )
 
 @Composable
 fun HomeDroidTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {

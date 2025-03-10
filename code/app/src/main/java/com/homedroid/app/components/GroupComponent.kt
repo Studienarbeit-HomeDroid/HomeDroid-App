@@ -32,8 +32,6 @@ import com.homedroid.app.ui.theme.HomeDroidTheme
 
 class GroupComponent {
 
-
-
     @RequiresApi(Build.VERSION_CODES.Q)
     @Composable
     fun GroupList(carConnectionType: Int, groups: List<Group>, htmlIsLoaded: Boolean) {

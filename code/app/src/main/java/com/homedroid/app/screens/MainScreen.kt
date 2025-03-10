@@ -2,30 +2,26 @@ package com.homedroid.app.screens
 
 import android.annotation.SuppressLint
 import android.os.Build
+import androidx.activity.ComponentActivity
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.activity.ComponentActivity
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import com.homedroid.app.R
 import com.homedroid.app.components.DashboardComponent
 import com.homedroid.app.components.FavoriteComponents
 import com.homedroid.app.components.GroupComponent
-import com.homedroid.data.model.Group
 import com.homedroid.app.ui.theme.HomeDroidTheme
+import com.homedroid.data.model.Group
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
@@ -47,7 +43,8 @@ class MainScreen : ComponentActivity() {
             Surface(
                 modifier = Modifier
                     .fillMaxSize()
-                    .verticalScroll(ScrollState(1000)),
+                    .verticalScroll(ScrollState(1000))
+                    .padding(WindowInsets.systemBars.asPaddingValues()),
                 color = MaterialTheme.colorScheme.primary
             ) {
                 Column(modifier = Modifier.padding(horizontal = 8.dp)) {
