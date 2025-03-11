@@ -1,7 +1,7 @@
 package com.homedroid.app.di
 
 import com.google.firebase.database.FirebaseDatabase
-import com.homedroid.data.interfaces.IDashboardRepository
+import com.homedroid.data.network.Socket
 import com.homedroid.data.repositories.DashboardRepository
 import dagger.Module
 import dagger.Provides
@@ -11,11 +11,12 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object DashboardRepositoryModule {
+object SocketModule {
 
     @Provides
     @Singleton
-    fun provideDashboardRepository(firebaseDatabase: FirebaseDatabase): IDashboardRepository {
-        return DashboardRepository(firebaseDatabase)
+    fun provideSocket(dashboardRepository: DashboardRepository): Socket {
+        return Socket(dashboardRepository )
+
     }
 }

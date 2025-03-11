@@ -10,7 +10,9 @@ import coil.memory.MemoryCache
 import coil.util.DebugLogger
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
+import com.homedroid.data.network.Socket
 import dagger.hilt.android.HiltAndroidApp
+import javax.inject.Inject
 
 @HiltAndroidApp
 class HomeDroidApplication : Application(), ImageLoaderFactory {
@@ -18,6 +20,8 @@ class HomeDroidApplication : Application(), ImageLoaderFactory {
      * Called when the application is created.
      * Initializes Firebase Database
      */
+    @Inject
+    lateinit var socket: Socket
     private lateinit var auth: FirebaseAuth
 
     override fun onCreate() {
@@ -25,6 +29,7 @@ class HomeDroidApplication : Application(), ImageLoaderFactory {
             FirebaseApp.initializeApp(this)
             auth = FirebaseAuth.getInstance()
             signIn()
+        socket.connect()
     }
 
     fun signIn() {
