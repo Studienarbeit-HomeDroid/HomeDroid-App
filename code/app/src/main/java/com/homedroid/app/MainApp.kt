@@ -68,21 +68,24 @@ class MainApp : ComponentActivity() {
             var showSplash by remember { mutableStateOf(true) }
             var groups by remember { mutableStateOf(emptyList<Group>()) }
             var isLoggedIn by remember { mutableStateOf(false) }
-            var result by remember { mutableStateOf(true) }
+            var loginChecked by remember { mutableStateOf(false) } // Neuer State, um das Laden zu steuern
 
-            val token: String = sharedPreferences.getString("token", null).toString()
+            val token: String = sharedPreferences.getString("token", null).orEmpty()
             Log.i("DATA FROM SERVER", "onCreate: $token")
 
-            if(token.isNotEmpty()) {
-                LaunchedEffect(Unit) {
-                    withContext(Dispatchers.IO)
-                    {
+            LaunchedEffect(token) {
+                if (token.isNotEmpty()) {
+                    withContext(Dispatchers.IO) {
                         isLoggedIn = login.getProtectedDataSync(token)
+                        Log.i("DATA FROM SERVER", "isLoggedIn: $isLoggedIn")
                     }
                 }
+                loginChecked = true
             }
 
-            if (isLoggedIn) {
+            if (!loginChecked) {
+                splashActivity.SplashScreen {}
+            } else if (isLoggedIn) {
                 LaunchedEffect(Unit) {
                     withContext(Dispatchers.IO) {
                         htmlIsLoaded = htmlParser.checkHtmlChanges()
@@ -97,7 +100,7 @@ class MainApp : ComponentActivity() {
                     Log.i("PARSER", "type: $htmlIsLoaded")
                     mainActivity.MainScreen(carConnectionType, groups, htmlIsLoaded)
                 }
-            }else{
+            } else {
                 isLoggedIn = loginScreen.LoginComponent()
             }
         }

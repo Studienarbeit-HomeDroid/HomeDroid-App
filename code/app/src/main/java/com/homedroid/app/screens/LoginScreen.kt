@@ -3,9 +3,9 @@ package com.homedroid.app.screens
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,6 +22,7 @@ import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -34,7 +36,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -45,7 +46,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.homedroid.app.ui.theme.HomeDroidTheme
-import com.homedroid.app.viewmodel.DashboardViewModel
 import com.homedroid.app.viewmodel.LoginViewModel
 
 class LoginScreen: ComponentActivity() {
@@ -99,7 +99,10 @@ class LoginScreen: ComponentActivity() {
                                 Icon(Icons.Default.Person, contentDescription = "person")
                             },
                             label = { Text("Enter Username") },
-                            textStyle = TextStyle( fontWeight = FontWeight.Normal, color = MaterialTheme.colorScheme.onPrimary),
+                            textStyle = TextStyle(
+                                fontWeight = FontWeight.Normal,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            ),
                             onValueChange = { username = it },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(16.dp),
@@ -124,7 +127,10 @@ class LoginScreen: ComponentActivity() {
                                 Icon(Icons.Default.Key, contentDescription = "password")
                             },
                             label = { Text("Enter Username") },
-                            textStyle = TextStyle( fontWeight = FontWeight.Normal, color = MaterialTheme.colorScheme.onPrimary),
+                            textStyle = TextStyle(
+                                fontWeight = FontWeight.Normal,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            ),
                             onValueChange = { password = it },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(16.dp),
@@ -141,38 +147,58 @@ class LoginScreen: ComponentActivity() {
                             )
                         )
 
-                        Button(onClick = {
-                            viewModel.logIn(username, password){
-                                Log.i("Login", "Login result: $it")
-                                isLoggedIn = it
-                            }
-                                         },
+                        var isLoading by remember { mutableStateOf(false) }
+
+                        Button(
+                            onClick = {
+                                isLoading = true
+                                viewModel.logIn(username, password) {
+                                    Log.i("Login", "Login result: $it")
+                                    isLoggedIn = it
+                                    isLoading = false
+                                }
+                            },
                             modifier = Modifier.fillMaxWidth().padding(0.dp, 25.dp, 0.dp, 0.dp),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.tertiary
                             ),
-                            shape = RoundedCornerShape(16.dp)) {
-                            Text(text = "Login",
-                                modifier = Modifier.fillMaxWidth().padding(5.dp),
-                                textAlign = TextAlign.Center,
-                                fontSize = 14.sp,
-                                color = MaterialTheme.colorScheme.onPrimary,
-
-                            )
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                if (isLoading) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier
+                                            .size(17.dp)
+                                            .padding(horizontal = 2.dp), // Abstand zum Text
+                                        color = MaterialTheme.colorScheme.onPrimary,
+                                        strokeWidth = 2.dp
+                                    )
+                                }
+                                Text(
+                                    text = if (isLoading) "Logging in..." else "Login",
+                                    textAlign = TextAlign.Center,
+                                    fontSize = 14.sp,
+                                    color = MaterialTheme.colorScheme.onPrimary,
+                                )
+                            }
                         }
+
+//                    Spacer(modifier = Modifier.height(50.dp))
+//
+//                    Image(
+//                        painter = painterResource(id = com.homedroid.app.R.drawable.google_login_light),
+//                        contentDescription = "Google Login Button",
+//                        modifier = Modifier
+//                            .width(200.dp)
+//                            .height(45.dp)
+//                            .clip(RoundedCornerShape(20.dp))
+//                            .clickable {  }
+//                    )
                     }
-
-                    Spacer(modifier = Modifier.height(50.dp))
-
-                    Image(
-                        painter = painterResource(id = com.homedroid.app.R.drawable.google_login_light),
-                        contentDescription = "Google Login Button",
-                        modifier = Modifier
-                            .width(200.dp)
-                            .height(45.dp)
-                            .clip(RoundedCornerShape(20.dp))
-                            .clickable {  }
-                    )
                 }
             }
         }
