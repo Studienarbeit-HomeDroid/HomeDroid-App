@@ -38,7 +38,7 @@ class MainScreen : ComponentActivity() {
     @SuppressLint("NotConstructor")
     @RequiresApi(Build.VERSION_CODES.Q)
     @Composable
-    fun MainScreen(carConnectionType: Int = 0, groups: List<Group> = emptyList(), htmlIsLoaded: Boolean) {
+    fun MainScreen(carConnectionType: Int = 0, htmlIsLoaded: Boolean) {
         HomeDroidTheme {
             Surface(
                 modifier = Modifier
@@ -50,11 +50,11 @@ class MainScreen : ComponentActivity() {
                 Column(modifier = Modifier.padding(horizontal = 8.dp)) {
                     groupComponent.GroupList(
                         carConnectionType,
-                        groups = groups,
                         htmlIsLoaded
                     )
                     dashboardComponent.Dashboard()
                     favoriteComponent.Favorite()
+
                 }
             }
         }

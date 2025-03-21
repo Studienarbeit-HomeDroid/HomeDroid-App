@@ -24,8 +24,14 @@ class FavoriteViewModel @Inject constructor(
         // Lade und beobachte die Favoriten beim Start
         viewModelScope.launch {
             favoriteRepository.getFavoritesFlow().collect { favoritesList ->
-                _favorites.value = favoritesList // Aktualisiere den StateFlow bei Änderungen
+                _favorites.value = favoritesList
             }
+        }
+    }
+
+    fun updateFavorites(groupId: Int, device: Device.ActionDevice) {
+        viewModelScope.launch {
+            favoriteRepository.updateFavorites(groupId, device)
         }
     }
 

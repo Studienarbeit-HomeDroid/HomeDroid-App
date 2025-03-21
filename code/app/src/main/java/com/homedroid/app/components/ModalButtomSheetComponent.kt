@@ -101,7 +101,7 @@ class ModalButtomSheetComponent {
                         DeviceRow(devices)
                     }
                 }
-                ActionDevicesRow(group.devices)
+                ActionDevicesRow(group.id,group.devices)
             }
         }
     }
@@ -111,7 +111,7 @@ class ModalButtomSheetComponent {
      */
     @RequiresApi(Build.VERSION_CODES.Q)
     @Composable
-    fun ActionDevicesRow(items: List<Device>) {
+    fun ActionDevicesRow(groupId: Int, items: List<Device>) {
         val favoriteCardComponent = CardComponent()
 
         Column{
@@ -122,7 +122,7 @@ class ModalButtomSheetComponent {
                 ) {
                     rowItems.forEach { item ->
                         if (item is Device.ActionDevice) {
-                            favoriteCardComponent.ActionDeviceCard(item)
+                            favoriteCardComponent.ActionDeviceCard(groupId, item)
                         }
                     }
                 }

@@ -4,8 +4,10 @@ import android.content.Context
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,6 +15,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -28,6 +31,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,12 +42,22 @@ import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
+import com.homedroid.app.R
 import com.homedroid.app.viewmodel.FavoriteViewModel
+import com.homedroid.app.viewmodel.GroupViewModel
 import com.homedroid.data.model.Device
 
 class CardComponent {
@@ -104,7 +118,10 @@ class CardComponent {
                                 .fillMaxWidth()
                                 .padding(start = 10.dp)
                                 .padding(top = 3.dp),
-                            textAlign = TextAlign.Start
+                            textAlign = TextAlign.Start,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+
                         )
                         Text(
                             text = device.group,
@@ -114,7 +131,9 @@ class CardComponent {
                                 .fillMaxWidth()
                                 .padding(start = 10.dp)
                                 .padding(top = 3.dp),
-                            textAlign = TextAlign.Start
+                            textAlign = TextAlign.Start,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }else if (device is Device.TemperatureDevice)
                     {
@@ -127,7 +146,10 @@ class CardComponent {
                                 .fillMaxWidth()
                                 .padding(start = 10.dp)
                                 .padding(top = 3.dp),
-                            textAlign = TextAlign.Start
+                            textAlign = TextAlign.Start,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+
                         )
 
                         Text(
@@ -138,6 +160,8 @@ class CardComponent {
                                 .fillMaxWidth()
                                 .padding(start = 10.dp)
                                 .padding(top = 3.dp),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                             textAlign = TextAlign.Start
                         )
                     }
@@ -213,11 +237,13 @@ class CardComponent {
     @RequiresApi(Build.VERSION_CODES.Q)
     @OptIn(ExperimentalFoundationApi::class)
     @Composable
-    fun ActionDeviceCard(device: Device.ActionDevice, viewModel: FavoriteViewModel = viewModel()) {
+    fun ActionDeviceCard(groupId: Int?, device: Device.ActionDevice, viewModel: FavoriteViewModel = viewModel(), groupViewModel: GroupViewModel = viewModel()) {
         val context = LocalContext.current
         val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         var showDialog by remember { mutableStateOf(false) }
         var isToggled by remember { mutableStateOf(device.status) }
+        var showPopup by remember { mutableStateOf(false) }
+
 
         Box(
             modifier = Modifier
@@ -225,7 +251,16 @@ class CardComponent {
                 .padding(5.dp)
                 .combinedClickable(
                     onClick = {
-                        isToggled = !isToggled
+                        Log.d("Firebase Group", "Clicked $device")
+                        if(!device.status)
+                        {
+                            showPopup = true
+                        }
+                        if(groupId != null)
+                        {
+                            groupViewModel.updateGroup(groupId, device)
+                            viewModel.updateFavorites(groupId, device)
+                        }
                     },
                     onLongClick = {
                         showDialog = true
@@ -244,7 +279,7 @@ class CardComponent {
                 shape = RoundedCornerShape(12.dp),
                 elevation = CardDefaults.elevatedCardElevation(),
                 colors = CardDefaults.cardColors(
-                    containerColor = if (isToggled) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.secondary,
+                    containerColor = if (device.status) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.secondary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
                 )
             ) {
@@ -262,10 +297,12 @@ class CardComponent {
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 3.dp),
-                        textAlign = TextAlign.Start
+                        textAlign = TextAlign.Start,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        text = "On",
+                        text = if(device.status) "On" else "Off",
                         style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                         color = Color.Gray,
                         modifier = Modifier
@@ -275,6 +312,9 @@ class CardComponent {
                     )
                 }
             }
+        }
+        if (showPopup) {
+            PopUp(device){ showPopup = false}
         }
         if (showDialog) {
             AlertDialog(
@@ -331,6 +371,58 @@ class CardComponent {
             )
         }
     }
+
+   @Composable
+   fun PopUp(device: Device.ActionDevice, onDismiss: () -> Unit) {
+       val hapticFeedback = LocalHapticFeedback.current
+
+       val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.success_animation_green))
+       val progress by animateLottieCompositionAsState(composition, restartOnPlay = false)
+
+       LaunchedEffect(progress) {
+           if (progress == 1f) {
+               onDismiss()
+               hapticFeedback.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+           }
+       }
+
+       Dialog(onDismissRequest = { onDismiss() },
+           properties = DialogProperties(usePlatformDefaultWidth = true, ) // Kein Abdunkeln
+       ) {
+           Box(
+               modifier = Modifier
+                   .fillMaxSize()
+                   .padding(bottom = 30.dp),
+               contentAlignment = Alignment.BottomStart
+
+           ) {
+               Box(
+                   modifier = Modifier
+                       .fillMaxWidth()
+                       .height(150.dp)
+                       .background(Color.White, shape = RoundedCornerShape(20.dp))
+                       .padding(16.dp)
+               ) {
+                   Column(
+                       modifier = Modifier.fillMaxSize(),
+                       verticalArrangement = Arrangement.Center,
+                       horizontalAlignment = Alignment.CenterHorizontally
+                   ) {
+                       LottieAnimation(
+                           composition = composition,
+                           progress = { progress },
+                           modifier = Modifier.size(80.dp)
+                       )
+                       Text("${device.name} wurde angeschaltet", color = Color.Black)
+                   }
+
+               }
+
+           }
+       }
+
+
+   }
 
 
 }
