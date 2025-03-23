@@ -68,6 +68,7 @@ class MainApp : ComponentActivity() {
         setContent {
             val carConnectionType by CarConnection(this).type.observeAsState(initial = -1)
             var showSplash by remember { mutableStateOf(true) }
+            var isParsing by remember { mutableStateOf(false) }
             //var groups by remember { mutableStateOf(emptyList<Group>()) }
             var isLoggedIn by remember { mutableStateOf(false) }
             var loginChecked by remember { mutableStateOf(false) } // Neuer State, um das Laden zu steuern
@@ -86,18 +87,20 @@ class MainApp : ComponentActivity() {
             }
 
             if (!loginChecked) {
-                splashActivity.SplashScreen {}
+                splashActivity.SplashScreen(isParsing) {}
             } else if (isLoggedIn) {
                 LaunchedEffect(Unit) {
                     withContext(Dispatchers.IO) {
+                        isParsing = true
                         htmlIsLoaded = htmlParser.checkHtmlChanges(token)
-                        //groups = groupRepository.getGroupItems()
+
                     }
+                    isParsing = false
                     showSplash = false
                 }
 
                 if (showSplash) {
-                    splashActivity.SplashScreen {}
+                    splashActivity.SplashScreen(isParsing) {}
                 } else {
                     Log.i("PARSER", "type: $htmlIsLoaded")
                     mainActivity.MainScreen(carConnectionType, htmlIsLoaded)

@@ -17,6 +17,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.activity.ComponentActivity
+import androidx.compose.material3.Text
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import com.homedroid.carappservice.R
@@ -34,7 +35,7 @@ class SplashScreen : ComponentActivity() {
 
     @SuppressLint("NotConstructor")
     @Composable
-    fun SplashScreen(onSplashFinished: () -> Unit) {
+    fun SplashScreen(isParsing: Boolean, onSplashFinished: () -> Unit) {
         LaunchedEffect(Unit) {
             delay(500)
             onSplashFinished()
@@ -66,6 +67,21 @@ class SplashScreen : ComponentActivity() {
                     color = MaterialTheme.colorScheme.tertiary,
                     strokeWidth = 3.dp
                 )
+
+                Spacer(modifier = Modifier.height(90.dp))
+
+                if(isParsing)
+                {
+                    Text(
+                        text = "Website is Parsing...",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontSize = 16.sp
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
+                }
+
             }
 
             Box(
@@ -88,6 +104,14 @@ class SplashScreen : ComponentActivity() {
 
                     androidx.compose.material3.Text(
                         text = "TINF22B2",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontSize = 12.sp
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
+                    androidx.compose.material3.Text(
+                        text = "Version: v.2",
                         style = MaterialTheme.typography.bodySmall.copy(
                             fontSize = 12.sp
                         ),
