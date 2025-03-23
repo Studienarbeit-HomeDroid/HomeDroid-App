@@ -50,23 +50,26 @@ import javax.inject.Inject
 class MainApp : ComponentActivity() {
     @Inject
     lateinit var login: Login
+
+    @Inject
+    lateinit var htmlParser: HtmlParser
+
     private val splashActivity: SplashScreen = SplashScreen()
     private var htmlIsLoaded: Boolean = false
     private val mainActivity: MainScreen = MainScreen()
-    private lateinit var htmlParser: HtmlParser
-    private val groupRepository: GroupRepository = GroupRepository()
+    //private val groupRepository: GroupRepository = GroupRepository()
     private val loginScreen: LoginScreen = LoginScreen()
 
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        htmlParser = HtmlParser(context = this)
         val sharedPreferences = this.getSharedPreferences("TokenPrefs", Context.MODE_PRIVATE)
 
         setContent {
             val carConnectionType by CarConnection(this).type.observeAsState(initial = -1)
             var showSplash by remember { mutableStateOf(true) }
-            var groups by remember { mutableStateOf(emptyList<Group>()) }
+            var isParsing by remember { mutableStateOf(false) }
+            //var groups by remember { mutableStateOf(emptyList<Group>()) }
             var isLoggedIn by remember { mutableStateOf(false) }
             var loginChecked by remember { mutableStateOf(false) } // Neuer State, um das Laden zu steuern
 
@@ -84,21 +87,23 @@ class MainApp : ComponentActivity() {
             }
 
             if (!loginChecked) {
-                splashActivity.SplashScreen {}
+                splashActivity.SplashScreen(isParsing) {}
             } else if (isLoggedIn) {
                 LaunchedEffect(Unit) {
                     withContext(Dispatchers.IO) {
-                        htmlIsLoaded = htmlParser.checkHtmlChanges()
-                        groups = groupRepository.getGroupItems()
+                        isParsing = true
+                        htmlIsLoaded = htmlParser.checkHtmlChanges(token)
+
                     }
+                    isParsing = false
                     showSplash = false
                 }
 
                 if (showSplash) {
-                    splashActivity.SplashScreen {}
+                    splashActivity.SplashScreen(isParsing) {}
                 } else {
                     Log.i("PARSER", "type: $htmlIsLoaded")
-                    mainActivity.MainScreen(carConnectionType, groups, htmlIsLoaded)
+                    mainActivity.MainScreen(carConnectionType, htmlIsLoaded)
                 }
             } else {
                 isLoggedIn = loginScreen.LoginComponent()

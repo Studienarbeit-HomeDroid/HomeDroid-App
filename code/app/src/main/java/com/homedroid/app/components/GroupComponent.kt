@@ -18,23 +18,28 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.homedroid.data.model.Group
 import com.homedroid.app.ui.theme.HomeDroidTheme
+import com.homedroid.app.viewmodel.GroupViewModel
 
 class GroupComponent {
 
     @RequiresApi(Build.VERSION_CODES.Q)
     @Composable
-    fun GroupList(carConnectionType: Int, groups: List<Group>, htmlIsLoaded: Boolean) {
+    fun GroupList(carConnectionType: Int,  htmlIsLoaded: Boolean, viewModel: GroupViewModel = viewModel()) {
+        val groupsFlowList = viewModel.groups.collectAsState()
         val context = LocalContext.current
 
         Row(
@@ -59,8 +64,10 @@ class GroupComponent {
                 modifier = Modifier.padding(end = 8.dp),
                 horizontalArrangement = Arrangement.Center
             ) {
-                items(groups) { group ->
-                    Group(group)
+                groupsFlowList.value.forEach { group ->
+                    item {
+                        Group(group)
+                    }
                 }
             }
 
@@ -78,7 +85,7 @@ class GroupComponent {
     @SuppressLint("NewApi")
     @Composable
     fun Group(group: Group) {
-        val openButtomSheet = BottomSheetViewModel()
+        val openBottomSheet = remember { BottomSheetViewModel() }
         val modalButtomSheetComponent = ModalButtomSheetComponent()
         val context = LocalContext.current
 
@@ -109,7 +116,7 @@ class GroupComponent {
                         .size(width = 70.dp, height = 70.dp)
                         .clip(RoundedCornerShape(10.dp))
                         .clickable {
-                            openButtomSheet.toggleBottomSheet()
+                            openBottomSheet.toggleBottomSheet()
                         },
                     elevation = CardDefaults.elevatedCardElevation()
                 ) {
@@ -146,8 +153,8 @@ class GroupComponent {
             }
 
             // Zeige das BottomSheet für die Gruppe
-            if (openButtomSheet.getBottomSheetValue()) {
-                modalButtomSheetComponent.ModalButtomSheet(openButtomSheet, group)
+            if (openBottomSheet.getBottomSheetValue()) {
+                modalButtomSheetComponent.ModalButtomSheet(openBottomSheet, group)
             }
         }
     }

@@ -60,8 +60,9 @@ class FavoriteComponents{
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     rowItems.forEach {
+                        Log.i("FAVORITES IN ROW", "$it")
                         when (it) {
-                            is Device.ActionDevice -> cardComponent.ActionDeviceCard(it)
+                            is Device.ActionDevice -> cardComponent.ActionDeviceCard(it.groupId, it)
                             else -> cardComponent.TempAndStatusDeviceCard(it)
                         }
                     }
