@@ -92,33 +92,6 @@ class LoginScreen: ComponentActivity() {
                             .padding(horizontal = 16.dp),
                         horizontalAlignment = Alignment.Start
                     ) {
-                        OutlinedTextField(
-                            value = username,
-                            maxLines = 1,
-                            leadingIcon = {
-                                Icon(Icons.Default.Person, contentDescription = "person")
-                            },
-                            label = { Text("Enter Username") },
-                            textStyle = TextStyle(
-                                fontWeight = FontWeight.Normal,
-                                color = MaterialTheme.colorScheme.onPrimary
-                            ),
-                            onValueChange = { username = it },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp),
-                            colors = TextFieldDefaults.colors(
-                                focusedContainerColor = Color.Transparent,
-                                unfocusedContainerColor = Color.Transparent,
-                                focusedTextColor = MaterialTheme.colorScheme.onPrimary,
-                                focusedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                                focusedIndicatorColor = MaterialTheme.colorScheme.onPrimary,
-                                unfocusedIndicatorColor = MaterialTheme.colorScheme.onPrimary,
-                                unfocusedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                                unfocusedTextColor = MaterialTheme.colorScheme.onPrimary,
-                            )
-                        )
-
-                        Spacer(modifier = Modifier.height(10.dp))
 
                         OutlinedTextField(
                             value = password,
