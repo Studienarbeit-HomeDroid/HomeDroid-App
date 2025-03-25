@@ -8,30 +8,37 @@ import com.homedroid.data.network.HtmlClient
 import com.homedroid.data.repositories.GroupRepository
 import com.fleeksoft.ksoup.Ksoup
 import java.security.MessageDigest
+import javax.inject.Inject
 
-class HtmlParser(context: Context) {
+class HtmlParser @Inject constructor(
+    private val context: Context,
+    private val groupRepository: GroupRepository,  // GroupRepository wird nun injiziert
+    private val client: HtmlClient                 // HtmlClient wird injiziert
+) {
 
     private lateinit var html: String
-    private val groupRepository = GroupRepository()
-    private val  client = HtmlClient()
     private var index: Int = 0
     private val sharedPreferences = context.getSharedPreferences("HtmlParserPrefs", Context.MODE_PRIVATE)
 
     /*
 
      */
-    suspend fun checkHtmlChanges():Boolean
+    suspend fun checkHtmlChanges(token:String):Boolean
     {
-        val newHtml = client.getHtml()
+        val newHtml = client.getProtectedData(token)
         Log.i("DATA FROM SERVER", "checkHtmlChanges: $newHtml")
         if(newHtml != null)
         {
+            Log.i("Parser", "HTML ist not Null")
+
             val currentHash = hashHtml(newHtml)
             val savedHash = sharedPreferences.getString("htmlHash", null)
 
-            if (savedHash != currentHash) {
+             if (savedHash != currentHash) {
+                Log.i("Parser", "Parser Started")
                 sharedPreferences.edit().putString("htmlHash", currentHash).apply()
-                parseHtml(newHtml)
+                this.html = newHtml
+                parseHtml(this.html)
             }
             return true
         }
@@ -60,14 +67,14 @@ class HtmlParser(context: Context) {
             {
                 val queryForGroupIcon = element.attr("data-info")
                 val name = element.children().text()
-                val listOfDevices = parseDevices(element, name )
+                val listOfDevices = parseDevices(index, element, name )
                 newGroupItem = Group( id = index, name = name, iconUrl = client.getIcon(queryForGroupIcon), devices = listOfDevices )
                 Log.i("DATA GROUPS","Tag: ${element.children().text()}, Inhalt: ${element.ownText()}")
             }else
             {
                 val queryForGroupIcon = element.attr("data-info")
                 val name = element.ownText()
-                val listOfDevices = parseDevices(element,name)
+                val listOfDevices = parseDevices(index, element,name)
                 newGroupItem = Group( id = index, name = name, iconUrl = client.getIcon(queryForGroupIcon), devices = listOfDevices)
             }
             groupRepository.addGroupToList(newGroupItem)
@@ -75,14 +82,14 @@ class HtmlParser(context: Context) {
         }
     }
 
-    fun parseDevices(element: com.fleeksoft.ksoup.nodes.Element, groupname: String): MutableList<Device>
+    fun parseDevices(groupId: Int, element: com.fleeksoft.ksoup.nodes.Element, groupname: String): MutableList<Device>
     {
         val mutableDevices: MutableList<Device> = mutableListOf()
 
         val actiondevices = element.select("[data-annotation='actiondevice']")
         actiondevices.map {element ->
             Log.i("DATA DEVICES","Tag: ${element.tagName()}, Inhalt: ${element.ownText()}")
-            val newActionDevice = Device.ActionDevice( id= index.toString(), name = element.ownText(), group = groupname )
+            val newActionDevice = Device.ActionDevice( id= index.toString(), name = element.ownText(), group = groupname, groupid = groupId.toString(), type = "ActionDevice" )
             mutableDevices.add(newActionDevice)
             index++
         }
@@ -91,7 +98,7 @@ class HtmlParser(context: Context) {
         statusdevices.map {element ->
             Log.i("DATA DEVICES","Tag: ${element.tagName()}, Inhalt: ${element.ownText()}")
             Device.StatusDevice(index.toString(), element.ownText(), )
-            val newStatusDevice = Device.StatusDevice( id = index.toString(), name = element.ownText(), group = groupname )
+            val newStatusDevice = Device.StatusDevice( id = index.toString(), name = element.ownText(), group = groupname, groupid = groupId.toString(), type = "StatusDevice" )
             mutableDevices.add(newStatusDevice)
             index++
         }
@@ -100,7 +107,7 @@ class HtmlParser(context: Context) {
         temperatureDevice.map {element ->
             Log.i("DATA DEVICES","Tag: ${element.tagName()}, Inhalt: ${element.ownText()}")
             Device.TemperatureDevice(index.toString(), element.ownText(), )
-            val newTemperatureDevice = Device.TemperatureDevice(id = index.toString(), name = element.ownText(), group = groupname )
+            val newTemperatureDevice = Device.TemperatureDevice(id = index.toString(), name = element.ownText(), group = groupname, groupid = groupId.toString(), type = "TemperatureDevice" )
             mutableDevices.add(newTemperatureDevice)
             index++
         }

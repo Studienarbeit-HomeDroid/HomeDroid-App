@@ -16,6 +16,8 @@ import androidx.lifecycle.lifecycleScope
 import com.homedroid.carappservice.BitMapGenerator
 import com.homedroid.data.model.Device
 import com.homedroid.data.repositories.FavoriteRepository
+import com.homedroid.data.repositories.GroupRepository
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -29,6 +31,7 @@ import javax.inject.Inject
 class FavoriteScreen(
     carContext: CarContext,
     private val favoriteRepository: FavoriteRepository,
+    private val groupRepository: GroupRepository,
     private val bitMapGenerator: BitMapGenerator = BitMapGenerator() // Optional: Injizieren
 ) : Screen(carContext) {
 
@@ -104,8 +107,12 @@ class FavoriteScreen(
                             .setTitle(device.name)
                             .setImage(bitMapGenerator.createTextAsIcon("${device.status}"))
                             .setOnClickListener {
-                                showToast()
-                                invalidate() }
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    favoriteRepository.updateFavorites(device.groupid.toInt(), device)
+                                    groupRepository.updateGroup(device.groupid.toInt(), device)
+                                }
+                                invalidate()
+                            }
                             .build()
                     )
                 }

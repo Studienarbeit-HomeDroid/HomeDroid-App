@@ -17,18 +17,25 @@
 package com.homedroid.data.repositories
 
 import android.util.Log
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
 import com.homedroid.data.interfaces.IGroupRepository
 import com.homedroid.data.model.Device
 import com.homedroid.data.model.Group
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
+import javax.inject.Inject
 
 
+class GroupRepository @Inject constructor(
+    private val database: FirebaseDatabase
+): IGroupRepository {
 
-class GroupRepository: IGroupRepository {
-
-    private val database: FirebaseDatabase = FirebaseDatabase.getInstance()
     private val groupsRef: DatabaseReference = database.getReference("groups")
     private val userId = "user123"
 
@@ -47,21 +54,27 @@ class GroupRepository: IGroupRepository {
                             "description" to device.description,
                             "value" to device.value,
                             "unit" to device.unit,
-                            "group" to device.group
+                            "group" to device.group,
+                            "groupid" to device.groupid,
+                            "type"  to device.type
                         )
                         is Device.ActionDevice -> mapOf(
                             "type" to "ActionDevice",
                             "id" to device.id,
                             "name" to device.name,
                             "status" to device.status,
-                            "group" to device.group
+                            "group" to device.group,
+                            "groupid" to device.groupid,
+                            "type"  to device.type
                         )
                         is Device.TemperatureDevice -> mapOf(
                             "type" to "TemperatureDevice",
                             "id" to device.id,
                             "name" to device.name,
                             "value" to device.value,
-                            "group" to device.group
+                            "group" to device.group,
+                            "groupid" to device.groupid,
+                            "type"  to device.type
                         )
                     }
                 }
@@ -69,6 +82,115 @@ class GroupRepository: IGroupRepository {
         }
 
         groupsRef.child(userId).setValue(dataToSave).await()
+    }
+
+    override suspend fun getGroupItemsFlow(): Flow<List<Group>> = callbackFlow {
+        Log.i("Firebase", "getGroupItemsFlow")
+        val listener = object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+
+                dataSnapshot.children.mapNotNull { result ->
+                   val  groups = result.children.mapNotNull { snapshot ->
+
+                        val groupName = snapshot.child("name").getValue(String::class.java)
+                        Log.i("Firebase", "Group found: $groupName")
+                        val iconUrl = snapshot.child("iconUrl").getValue(String::class.java)
+                        val groupId = snapshot.child("id").getValue(Int::class.java)
+
+                        val devices =
+                            snapshot.child("devices").children.mapNotNull { deviceSnapshot ->
+                                val deviceName =
+                                    deviceSnapshot.child("name").getValue(String::class.java)
+                                val deviceId = deviceSnapshot.child("id").getValue(String::class.java)
+                                val deviceType =
+                                    deviceSnapshot.child("type").getValue(String::class.java)
+                                val deviceValue =
+                                    deviceSnapshot.child("value").getValue(String::class.java)
+                                val deviceStatus =
+                                    deviceSnapshot.child("status").getValue(Boolean::class.java)
+                                        ?: false
+
+                                when (deviceType) {
+                                    "ActionDevice" -> Device.ActionDevice(
+                                        deviceId.toString(),
+                                        deviceName ?: "",
+                                        deviceStatus,
+                                        groupName ?: "",
+                                        groupId.toString(),
+                                        "ActionDevice"
+                                    )
+
+                                    "StatusDevice" -> deviceValue?.let {
+                                        Device.StatusDevice(
+                                            deviceId.toString(),
+                                            deviceName ?: "",
+                                            "",
+                                            deviceValue,
+                                            "",
+                                            groupName ?: "",
+                                            groupId.toString(),
+                                            "StatusDevice"
+                                        )
+                                    }
+
+                                    "TemperatureDevice" -> deviceValue?.let {
+                                        Device.TemperatureDevice(
+                                            deviceId.toString(),
+                                            deviceName ?: "",
+                                            deviceValue,
+                                            groupName ?: "",
+                                            groupId.toString(),
+                                            "TemperatureDevice"
+                                        )
+                                    }
+
+                                    else -> null
+                                }
+                            }
+
+                        if (groupName != null && groupId != null) {
+                            Log.i("Firebase", "Group found: $groupName")
+                            Group(
+                                id = groupId,
+                                name = groupName,
+                                iconUrl = iconUrl ?: "",
+                                devices = devices.toMutableList()
+                            )
+                        } else {
+                            null
+                        }
+                    }
+                    trySend(groups).isSuccess
+
+                }
+
+
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                trySend(emptyList<Group>()).isSuccess
+            }
+        }
+
+        groupsRef.addValueEventListener(listener)
+
+        awaitClose {
+            groupsRef.removeEventListener(listener)
+        }
+    }
+
+    override suspend fun updateGroup(groupId: Int?, device: Device.ActionDevice) {
+        Log.i("UpdateDevice", "UpdateStarted")
+        if (groupId == null) return
+        val groupRef = groupsRef.child(userId).child("$groupId")
+        val deviceRef = groupRef.child("devices").child(device.id)
+        deviceRef.child("status").setValue(!device.status).addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                Log.i("UpdateDevice", "Device status updated successfully.")
+            } else {
+                Log.e("UpdateDevice", "Failed to update device status.", task.exception)
+            }
+        }
     }
 
 
@@ -133,7 +255,9 @@ class GroupRepository: IGroupRepository {
 
 
     override suspend fun addGroupToList(group: Group){
+        Log.i("Group", group.toString())
         val groups = getGroupItems()
+        Log.i("Group", groups.toString())
         if (!groups.contains(group)) {
             Log.i("Group", group.toString())
             val updatedFavorites = groups.toMutableList().apply { add(group) }

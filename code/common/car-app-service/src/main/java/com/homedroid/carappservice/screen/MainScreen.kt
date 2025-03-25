@@ -18,18 +18,19 @@ import com.homedroid.carappservice.R
 import com.homedroid.carappservice.components.TabInfo
 import com.homedroid.data.repositories.DashboardRepository
 import com.homedroid.data.repositories.FavoriteRepository
+import com.homedroid.data.repositories.GroupRepository
 
 /**
     Generates the user Inferfaces
     User Interface is representent by Template Classes
     Each Session manage a Stack of Screen instances
  */
-class MainScreen(carContext: CarContext, favoriteRepository: FavoriteRepository, dashboardRepository: DashboardRepository ) : Screen(carContext) {
+class MainScreen(carContext: CarContext, favoriteRepository: FavoriteRepository, dashboardRepository: DashboardRepository, groupRepository: GroupRepository ) : Screen(carContext) {
 
     private val firstTab = TabInfo("first_tab", R.string.first_tab, R.drawable.home_tab)
     private val secondTab = TabInfo("second_tab", R.string.second_tab, R.drawable.favorite_foreground)
     @RequiresApi(Build.VERSION_CODES.P)
-    private val favoriteScreen = FavoriteScreen(carContext, favoriteRepository)
+    private val favoriteScreen = FavoriteScreen(carContext, favoriteRepository, groupRepository)
     private var homeScreen = HomeScreen(carContext, dashboardRepository)
 
 

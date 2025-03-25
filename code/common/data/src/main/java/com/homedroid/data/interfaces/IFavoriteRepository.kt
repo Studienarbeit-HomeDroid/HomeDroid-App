@@ -7,5 +7,6 @@ interface IFavoriteRepository {
     suspend fun getFavoritesFlow(): Flow<List<Device>> // Neue Methode
     suspend fun addFavorite(device: Device)
     suspend fun removeFavorite(device: Device)
+    suspend fun updateFavorites(groupId: Int, device: Device.ActionDevice)
 
 }

@@ -2,29 +2,57 @@ package com.homedroid.carappservice.screen
 
 import androidx.car.app.CarContext
 import androidx.car.app.Screen
-import androidx.car.app.model.CarIcon
-import androidx.car.app.model.CarText
+
 import androidx.car.app.model.ItemList
 import androidx.car.app.model.ListTemplate
 import androidx.car.app.model.Row
 import androidx.car.app.model.Template
-import androidx.core.graphics.drawable.IconCompat
+import androidx.lifecycle.lifecycleScope
 import com.homedroid.carappservice.R
+import android.util.Log
+import androidx.annotation.OptIn
+import androidx.car.app.annotations.ExperimentalCarApi
 import com.homedroid.carappservice.components.HomeListInfo
+import com.homedroid.data.model.DashboardData
+import com.homedroid.data.model.DashboardValues
+import com.homedroid.data.model.Device
 import com.homedroid.data.repositories.DashboardRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
+
 
 class HomeScreen(carContext: CarContext, private val dashboardRepository: DashboardRepository) : Screen(carContext) {
     private val listOfHomeListInfos = mutableListOf<HomeListInfo>()
-    private val dashboardData = dashboardRepository.dashboardList
+    private var dashboardData:  List<DashboardValues> = emptyList()
     val itemList = ItemList.Builder()
 
     init {
-        createListItemsInfos()
-        createItem()
+        observeFavorites()
+    }
+
+    private fun observeFavorites() {
+        lifecycleScope.launch {
+            dashboardRepository.getDashboardFlow().collectLatest { newDashboard ->
+                if (dashboardData != newDashboard) {
+                    Log.i("DashboardScreen", "Updating favorites: $newDashboard")
+                    dashboardData = newDashboard
+                    createListItemsInfos()
+                    createItem()
+                    withContext(Dispatchers.Main) {
+                        invalidate()
+                    }
+                } else {
+                    Log.i("FavoriteScreen", "No change in favorites, skipping update")
+                }
+            }
+        }
     }
 
     fun createListItemsInfos() {
-
+        listOfHomeListInfos.clear()
         dashboardData.forEach{ data ->
             var description: String = ""
             if (data.values.isNotEmpty()) {
@@ -44,8 +72,11 @@ class HomeScreen(carContext: CarContext, private val dashboardRepository: Dashbo
     }
 
 
+    @OptIn(ExperimentalCarApi::class)
     fun createItem() {
+        itemList.clearItems()
         println(listOfHomeListInfos.size)
+
         for (item in listOfHomeListInfos) {
             val item = Row.Builder()
                 .setTitle(item.title)

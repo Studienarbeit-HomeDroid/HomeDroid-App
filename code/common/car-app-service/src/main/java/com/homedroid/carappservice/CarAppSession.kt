@@ -8,19 +8,21 @@ import androidx.car.app.Session
 import com.homedroid.carappservice.screen.MainScreen
 import com.homedroid.data.repositories.DashboardRepository
 import com.homedroid.data.repositories.FavoriteRepository
+import com.homedroid.data.repositories.GroupRepository
 
 /**
  * Instance of a client app running on a display in the vehicle
  */
 class CarAppSession(
     private val favoriteRepository: FavoriteRepository,
-    private val dashboardRepository: DashboardRepository
+    private val dashboardRepository: DashboardRepository,
+    private val groupRepository: GroupRepository,
 ) : Session() {
 
 
     override fun onCreateScreen(intent: Intent): Screen {
         // MainScreen will be an unresolved reference until the next step
         Log.d("MyCarAppService", "Creating session with carContext: $carContext")
-        return MainScreen(carContext, favoriteRepository, dashboardRepository)
+        return MainScreen(carContext, favoriteRepository, dashboardRepository, groupRepository)
     }
 }

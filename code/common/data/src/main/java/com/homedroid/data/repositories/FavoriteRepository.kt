@@ -30,21 +30,27 @@ class FavoriteRepository @Inject constructor(
                 "description" to device.description,
                 "value" to device.value,
                 "unit" to device.unit,
-                "group" to device.group
+                "group" to device.group,
+                "groupid" to device.groupid,
+                "type" to device.type,
             )
             is Device.ActionDevice -> mapOf(
                 "type" to "ActionDevice",
                 "id" to device.id,
                 "name" to device.name,
                 "status" to device.status,
-                "group" to device.group
+                "group" to device.group,
+                "groupid" to device.groupid,
+                "type" to device.type,
             )
             is Device.TemperatureDevice -> mapOf(
                 "type" to "TemperatureDevice",
                 "id" to device.id,
                 "name" to device.name,
                 "value" to device.value,
-                "group" to device.group
+                "group" to device.group,
+                "groupid" to device.groupid,
+                "type" to device.type,
             )
         }
     }
@@ -99,6 +105,18 @@ class FavoriteRepository @Inject constructor(
         }
     }
 
+    override suspend fun updateFavorites(groupId: Int, device: Device.ActionDevice) {
+        Log.i("Firebase", "Updating device status: ${groupId}+${device}")
+        val deviceRef = favoritesRef.child(userId).child(device.id)
+        deviceRef.child("status").setValue(!device.status).addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                Log.i("Firebase", "Device status updated successfully.")
+            } else {
+                Log.e("Firebase", "Failed to update device status.", task.exception)
+            }
+        }
+    }
+
     // Speichere Favoriten in Firebase
     suspend fun saveFavorites(favorites: List<Device>) {
         try {
@@ -111,8 +129,9 @@ class FavoriteRepository @Inject constructor(
     }
 
     override suspend fun addFavorite(device: Device) {
-        val currentFavorites = getCurrentFavorites() // Einmaliger Abruf
-        if (currentFavorites.none { it.id == device.id }) { // Prüfe auf Duplikate
+        Log.i("Favorite", "Adding favorite: $device")
+        val currentFavorites = getCurrentFavorites()
+        if (currentFavorites.none { it.id == device.id }) {
             val updatedFavorites = currentFavorites + device
             saveFavorites(updatedFavorites)
         } else {
