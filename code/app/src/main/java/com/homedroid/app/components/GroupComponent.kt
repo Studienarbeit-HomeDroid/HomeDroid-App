@@ -39,6 +39,7 @@ class GroupComponent {
     @RequiresApi(Build.VERSION_CODES.Q)
     @Composable
     fun GroupList(carConnectionType: Int,  htmlIsLoaded: Boolean, viewModel: GroupViewModel = viewModel()) {
+        Log.i("GroupList", "In Group List")
         val groupsFlowList = viewModel.groups.collectAsState()
         val context = LocalContext.current
 

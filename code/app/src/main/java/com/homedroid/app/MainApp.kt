@@ -64,7 +64,7 @@ class MainApp : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val sharedPreferences = this.getSharedPreferences("TokenPrefs", Context.MODE_PRIVATE)
+        val sharedPreferences = this.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
 
         setContent {
             val carConnectionType by CarConnection(this).type.observeAsState(initial = -1)
@@ -77,7 +77,7 @@ class MainApp : ComponentActivity() {
             val token: String = sharedPreferences.getString("token", null).orEmpty()
             Log.i("DATA FROM SERVER", "onCreate: $token")
 
-            LaunchedEffect(token) {
+            LaunchedEffect(Unit) {
                 if (token.isNotEmpty()) {
                     withContext(Dispatchers.IO) {
                         isLoggedIn = login.getProtectedDataSync(token)
@@ -108,6 +108,7 @@ class MainApp : ComponentActivity() {
                 }
             } else {
                 isLoggedIn = loginScreen.LoginComponent()
+                Log.i("DATA FROM SERVER", "isLoggedIn: $isLoggedIn")
             }
         }
     }

@@ -26,6 +26,7 @@ class GroupViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             groupRepository.getGroupItemsFlow().collect { groupList ->
+                Log.d("Firebase Group", "Group exists: $groupList")
                 _groups.value = groupList
             }
         }

@@ -251,7 +251,7 @@ class CardComponent {
                 .padding(5.dp)
                 .combinedClickable(
                     onClick = {
-                        Log.d("Firebase Group", "Clicked $device")
+                        Log.d("Firebase Action Card", "Clicked $device $groupId")
                         if(!device.status)
                         {
                             showPopup = true

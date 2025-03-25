@@ -10,7 +10,6 @@ import coil.memory.MemoryCache
 import coil.util.DebugLogger
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
-import com.homedroid.data.network.Socket
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 

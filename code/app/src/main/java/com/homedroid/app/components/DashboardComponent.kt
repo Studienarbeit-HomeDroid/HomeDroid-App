@@ -1,5 +1,6 @@
 package com.homedroid.app.components
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,6 +40,7 @@ class DashboardComponent {
     @Composable
     fun Dashboard( viewModel: DashboardViewModel = viewModel()) {
         val dashboardData = viewModel.dashboardData.collectAsState()
+        Log.d("DashboardComponent", "dashboardData: $dashboardData")
         HomeDroidTheme {
             Text(
                 text = "Dashboard",

@@ -1,5 +1,6 @@
 package com.homedroid.app.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.homedroid.data.interfaces.IFavoriteRepository
@@ -24,6 +25,7 @@ class FavoriteViewModel @Inject constructor(
         // Lade und beobachte die Favoriten beim Start
         viewModelScope.launch {
             favoriteRepository.getFavoritesFlow().collect { favoritesList ->
+                Log.i("Favorite", "Received favorites: $favoritesList")
                 _favorites.value = favoritesList
             }
         }
