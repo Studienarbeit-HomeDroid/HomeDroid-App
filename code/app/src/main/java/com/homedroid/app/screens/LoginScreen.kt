@@ -47,11 +47,12 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.homedroid.app.ui.theme.HomeDroidTheme
 import com.homedroid.app.viewmodel.LoginViewModel
+import com.homedroid.app.viewmodel.ServerConfigViewModel
 
 class LoginScreen: ComponentActivity() {
 
     @Composable
-    fun LoginComponent(viewModel: LoginViewModel = viewModel()): Boolean {
+    fun LoginComponent(viewModel: ServerConfigViewModel = viewModel() ): Boolean {
 
         var username by remember { mutableStateOf("") }
         var password by remember { mutableStateOf("") }
@@ -125,11 +126,13 @@ class LoginScreen: ComponentActivity() {
                         Button(
                             onClick = {
                                 isLoading = true
-                                viewModel.logIn(username, password) {
-                                    Log.i("Login", "Login result: $it")
-                                    isLoggedIn = it
-                                    isLoading = false
-                                }
+                                viewModel.password = password
+                                isLoggedIn = true
+//                                viewModel.logIn(username, password) {
+//                                    Log.i("Login", "Login result: $it")
+//                                    isLoggedIn = it
+//                                    isLoading = false
+//                                }
                             },
                             modifier = Modifier.fillMaxWidth().padding(0.dp, 25.dp, 0.dp, 0.dp),
                             colors = ButtonDefaults.buttonColors(

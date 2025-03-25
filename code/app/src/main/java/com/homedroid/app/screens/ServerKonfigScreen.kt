@@ -15,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -27,6 +28,8 @@ class ServerKonfigScreen : ComponentActivity() {
     fun ServerKonfig(viewModel: ServerConfigViewModel = viewModel(), onFinished: () -> Unit) {
         var serverUrl by remember { mutableStateOf("") }
         var certUri by remember { mutableStateOf<Uri?>(null) }
+        val context = LocalContext.current
+
 
         val certPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             certUri = uri
@@ -96,7 +99,7 @@ class ServerKonfigScreen : ComponentActivity() {
                     // Speichern-Button
                     Button(
                         onClick = {
-                            viewModel.saveServerConfig(serverUrl, certUri)
+                            viewModel.saveServerConfig(context, serverUrl, certUri)
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary),
                         modifier = Modifier.fillMaxWidth()
