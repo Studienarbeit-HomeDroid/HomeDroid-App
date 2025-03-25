@@ -62,7 +62,7 @@ class FavoriteComponents{
                     rowItems.forEach {
                         Log.i("FAVORITES IN ROW", "$it")
                         when (it) {
-                            is Device.ActionDevice -> cardComponent.ActionDeviceCard(it.groupId, it)
+                            is Device.ActionDevice -> cardComponent.ActionDeviceCard(it.groupid.toIntOrNull(), it)
                             else -> cardComponent.TempAndStatusDeviceCard(it)
                         }
                     }

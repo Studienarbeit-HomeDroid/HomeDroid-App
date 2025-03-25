@@ -48,6 +48,7 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainApp : ComponentActivity() {
+
     @Inject
     lateinit var login: Login
 
