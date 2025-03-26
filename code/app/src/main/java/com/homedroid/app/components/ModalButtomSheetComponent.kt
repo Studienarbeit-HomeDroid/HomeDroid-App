@@ -41,6 +41,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.homedroid.app.viewmodel.FavoriteViewModel
+import com.homedroid.app.viewmodel.GroupViewModel
 import com.homedroid.data.model.Device
 import com.homedroid.data.model.Group
 import com.homedroid.data.model.ParsedDevices
@@ -88,7 +89,7 @@ class ModalButtomSheetComponent {
                     )
                     LazyColumn {
                         items(group.devices.filter { it.messwertTyp == "Temp"  || it.messwertTyp == "TLFH"}) { device ->
-                            DeviceRow(device)
+                            DeviceRow(group, device)
                         }
                     }
                 }
@@ -102,7 +103,7 @@ class ModalButtomSheetComponent {
                     )
                     LazyColumn {
                         items(group.devices.filter { it.messwertTyp == "F" }) { device ->
-                            DeviceRow(device)
+                            DeviceRow(group, device)
                         }
                     }
                 }
@@ -116,7 +117,7 @@ class ModalButtomSheetComponent {
                     )
                     LazyColumn {
                         items(group.devices.filter { it.messwertTyp == "R" }) { device ->
-                            DeviceRow(device)
+                            DeviceRow(group, device)
                         }
                     }
                 }
@@ -143,7 +144,7 @@ class ModalButtomSheetComponent {
                     )
                     LazyColumn {
                         items(group.devices.filter { it.messwertTyp.isNullOrEmpty() }) { device ->
-                            DeviceRow(device)
+                            DeviceRow(group, device)
                         }
                     }
                 }
@@ -183,7 +184,7 @@ class ModalButtomSheetComponent {
      */
     @OptIn(DelicateCoroutinesApi::class)
     @Composable
-    fun DeviceRow(device: ParsedDevices, viewModel: FavoriteViewModel = viewModel()) {
+    fun DeviceRow(group: ParsedGroup, device: ParsedDevices, viewModel: FavoriteViewModel = viewModel(), groupViewModel: GroupViewModel = viewModel()) {
         var swipeOffset by remember { mutableStateOf(0f) }
         var isFavorite by remember { mutableStateOf(false) }
 
@@ -249,6 +250,8 @@ class ModalButtomSheetComponent {
                                 Log.i("DEVICES CLICKED", device.toString())
 
                             }
+                            groupViewModel.updateFavorite(group.id, device)
+
                             isFavorite = !isFavorite
                             GlobalScope.launch {
                                 delay(1000)

@@ -78,7 +78,7 @@ class CardComponent {
     @OptIn(ExperimentalFoundationApi::class)
     @RequiresApi(Build.VERSION_CODES.Q)
     @Composable
-    fun TempAndStatusDeviceCard(group: ParsedGroup, device: ParsedDevices, viewModel: FavoriteViewModel = viewModel()) {
+    fun TempAndStatusDeviceCard( group: ParsedGroup, device: ParsedDevices, viewModel: FavoriteViewModel = viewModel(), groupViewModel: GroupViewModel = viewModel()) {
         var showDialog by remember { mutableStateOf(false) }
         val context = LocalContext.current
         val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
@@ -177,9 +177,8 @@ class CardComponent {
                 },
                 confirmButton = {
                     Button(onClick = {
-//                        if (device is Device.StatusDevice || device is Device.TemperatureDevice) {
-//                            viewModel.removeFavorite(device)
-//                        }
+                        groupViewModel.updateFavorite(group.id, device)
+
                         showDialog = false
                     }) {
                         Text("OK")
@@ -298,7 +297,7 @@ class CardComponent {
                 containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.95F),
                 onDismissRequest = { showDialog = false },
                 icon = {
-                    if (device.status) {
+                    if (device.favorite) {
                         Icon(
                             imageVector = Icons.Filled.Favorite,
                             contentDescription = "Favorite",
@@ -317,19 +316,13 @@ class CardComponent {
                     }
                 },
                 title = {
-                    if (device.status) Text("Favorit entfernen") else Text("Favorit hinzufügen")
+                    if (device.favorite) Text("Favorit entfernen") else Text("Favorit hinzufügen")
                 },
                 confirmButton = {
                     Button(
                         onClick = {
                             showDialog = false
                             groupViewModel.updateFavorite(groupId, device)
-                            if (device.status) {
-
-                                //viewModel.removeFavorite(device)
-                            } else {
-                                //viewModel.addFavorite(device)
-                            }
                         }
                     ) {
                         Text("OK")
