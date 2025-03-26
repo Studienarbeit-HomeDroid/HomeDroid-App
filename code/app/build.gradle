@@ -119,6 +119,7 @@ dependencies {
     // Material2 for ModalBottomSheet (Experimental feature)
     implementation "androidx.compose.material:material:$compose_version"
 
+
     // Kotlin Coroutines for background tasks (e.g., used in ModalBottomSheet)
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.0"
 

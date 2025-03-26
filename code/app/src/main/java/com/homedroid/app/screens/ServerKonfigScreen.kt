@@ -1,5 +1,6 @@
 package com.homedroid.app.screens
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
@@ -7,8 +8,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cloud
+import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -17,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.homedroid.app.ui.theme.HomeDroidTheme
@@ -25,15 +29,28 @@ import com.homedroid.app.viewmodel.ServerConfigViewModel
 class ServerKonfigScreen : ComponentActivity() {
 
     @Composable
-    fun ServerKonfig(viewModel: ServerConfigViewModel = viewModel(), onFinished: () -> Unit) {
+    fun ServerKonfig(context: Context, viewModel: ServerConfigViewModel = viewModel(), onFinished: () -> Unit) {
+
         var serverUrl by remember { mutableStateOf("") }
+        var password by remember { mutableStateOf("") }
         var certUri by remember { mutableStateOf<Uri?>(null) }
-        val context = LocalContext.current
 
 
-        val certPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-            certUri = uri
-            Log.d("ServerKonfig", "Zertifikat ausgewählt: $uri")
+        val certPicker = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.OpenDocument()
+        ) { uri ->
+            uri?.let {
+                try {
+                    context.contentResolver.takePersistableUriPermission(
+                        it,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    )
+                    certUri = it
+                    Log.d("ServerKonfig", "Zertifikat ausgewählt: $it")
+                } catch (e: SecurityException) {
+                    Log.e("ServerKonfig", "Zugriff auf Zertifikat fehlgeschlagen: ${e.message}")
+                }
+            }
         }
 
         HomeDroidTheme {
@@ -62,6 +79,7 @@ class ServerKonfigScreen : ComponentActivity() {
                         label = { Text("Server URL eingeben") },
                         leadingIcon = { Icon(Icons.Default.Cloud, contentDescription = "URL") },
                         textStyle = TextStyle(color = Color.Black),
+                        shape = RoundedCornerShape(16.dp),
                         modifier = Modifier.fillMaxWidth(),
                         colors = TextFieldDefaults.colors(
                             focusedContainerColor = Color.Transparent,
@@ -77,9 +95,39 @@ class ServerKonfigScreen : ComponentActivity() {
 
                     Spacer(modifier = Modifier.height(20.dp))
 
+                    OutlinedTextField(
+                        value = password,
+                        maxLines = 1,
+                        leadingIcon = {
+                            Icon(Icons.Default.Key, contentDescription = "password")
+                        },
+                        label = { Text("Enter Username") },
+                        textStyle = TextStyle(
+                            fontWeight = FontWeight.Normal,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        ),
+                        onValueChange = { password = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = TextFieldDefaults.colors(
+                            cursorColor = MaterialTheme.colorScheme.onPrimary,
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            focusedTextColor = MaterialTheme.colorScheme.onPrimary,
+                            focusedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                            focusedIndicatorColor = MaterialTheme.colorScheme.onPrimary,
+                            unfocusedIndicatorColor = MaterialTheme.colorScheme.onPrimary,
+                            unfocusedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onPrimary,
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+
                     // Button zum Zertifikat hochladen
                     Button(
-                        onClick = { certPicker.launch("*/*") },
+                        onClick = { certPicker.launch(arrayOf("*/*")) },
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -99,7 +147,13 @@ class ServerKonfigScreen : ComponentActivity() {
                     // Speichern-Button
                     Button(
                         onClick = {
-                            viewModel.saveServerConfig(context, serverUrl, certUri)
+                            viewModel.saveServerConfig(context, serverUrl, certUri, password){
+                                result ->
+                                if(result)
+                                {
+                                    onFinished()
+                                }
+                            }
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary),
                         modifier = Modifier.fillMaxWidth()

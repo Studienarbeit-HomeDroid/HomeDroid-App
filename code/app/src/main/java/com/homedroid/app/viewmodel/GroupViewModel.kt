@@ -7,6 +7,7 @@ import com.homedroid.data.interfaces.IFavoriteRepository
 import com.homedroid.data.interfaces.IGroupRepository
 import com.homedroid.data.model.Device
 import com.homedroid.data.model.Group
+import com.homedroid.data.model.ParsedGroup
 import com.homedroid.data.repositories.GroupRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,12 +21,12 @@ class GroupViewModel @Inject constructor(
     private val groupRepository: IGroupRepository
 
 ): ViewModel() {
-    private val _groups = MutableStateFlow<List<Group>>(emptyList())
-    val groups: StateFlow<List<Group>> = _groups.asStateFlow()
+    private val _groups = MutableStateFlow<List<ParsedGroup>>(emptyList())
+    val groups: StateFlow<List<ParsedGroup>> = _groups.asStateFlow()
 
     init {
         viewModelScope.launch {
-            groupRepository.getGroupItemsFlow().collect { groupList ->
+            groupRepository.getParsedGroupFlow().collect { groupList ->
                 Log.d("Firebase Group", "Group exists: $groupList")
                 _groups.value = groupList
             }
