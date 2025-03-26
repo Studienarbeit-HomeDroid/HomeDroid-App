@@ -33,6 +33,7 @@ import coil.request.ImageRequest
 import com.homedroid.data.model.Group
 import com.homedroid.app.ui.theme.HomeDroidTheme
 import com.homedroid.app.viewmodel.GroupViewModel
+import com.homedroid.data.model.ParsedGroup
 
 class GroupComponent {
 
@@ -85,7 +86,7 @@ class GroupComponent {
 
     @SuppressLint("NewApi")
     @Composable
-    fun Group(group: Group) {
+    fun Group(group: ParsedGroup) {
         val openBottomSheet = remember { BottomSheetViewModel() }
         val modalButtomSheetComponent = ModalButtomSheetComponent()
         val context = LocalContext.current
@@ -125,20 +126,27 @@ class GroupComponent {
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        if (!group.iconUrl.isNullOrBlank()) {
-                            AsyncImage(
-                                model = imageRequest,
-                                contentDescription = "Icon from URL",
-                                modifier = Modifier.size(30.dp),
-                            )
-                            Log.i("ASYNCIMAGE LOADED", group.id.toString())
-                        } else {
-                            Icon(
-                                imageVector = Icons.Outlined.Place,
-                                contentDescription = "Icon from URL",
-                                modifier = Modifier.size(30.dp)
-                            )
-                        }
+//                        if (!group.iconUrl.isNullOrBlank()) {
+//                            AsyncImage(
+//                                model = imageRequest,
+//                                contentDescription = "Icon from URL",
+//                                modifier = Modifier.size(30.dp),
+//                            )
+//                            Log.i("ASYNCIMAGE LOADED", group.id.toString())
+//                        } else {
+//                            Icon(
+//                                imageVector = Icons.Outlined.Place,
+//                                contentDescription = "Icon from URL",
+//                                modifier = Modifier.size(30.dp)
+//                            )
+//                        }
+
+                        Text(
+                            text = group.name.firstOrNull()?.toString()?.take(1) ?: "D", // Holt den ersten Buchstaben oder einen Default-Wert ("D")
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.padding(top = 5.dp)
+                        )
                     }
                 }
 

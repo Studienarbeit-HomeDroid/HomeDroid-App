@@ -7,6 +7,7 @@ import com.homedroid.data.interfaces.IFavoriteRepository
 import com.homedroid.data.interfaces.IGroupRepository
 import com.homedroid.data.model.Device
 import com.homedroid.data.model.Group
+import com.homedroid.data.model.ParsedDevices
 import com.homedroid.data.model.ParsedGroup
 import com.homedroid.data.repositories.GroupRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -33,11 +34,18 @@ class GroupViewModel @Inject constructor(
         }
     }
 
-    fun updateGroup(groupId: Int?, device: Device.ActionDevice) {
+    fun updateGroup(groupId: Int?, device: ParsedDevices) {
         Log.d("Firebase Group", "Group exists: $device")
         viewModelScope.launch {
-            groupRepository.updateGroup(groupId, device)
+            //groupRepository.updateGroup(groupId, device)
         }
+    }
+
+    fun updateFavorite(groupId: Int?, device: ParsedDevices) {
+        viewModelScope.launch {
+            groupRepository.updateFavorite(groupId, device)
+        }
+
     }
 
 }

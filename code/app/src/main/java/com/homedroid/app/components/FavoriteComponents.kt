@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import com.homedroid.data.model.Device
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.homedroid.app.viewmodel.FavoriteViewModel
+import com.homedroid.app.viewmodel.GroupViewModel
 
 
 class FavoriteComponents{
@@ -46,24 +47,27 @@ class FavoriteComponents{
      */
     @RequiresApi(Build.VERSION_CODES.Q)
     @Composable
-    fun ListOfFavorites(viewModel: FavoriteViewModel = viewModel()) {
-        val items by viewModel.favorites.collectAsState()
+    fun ListOfFavorites(viewModel: FavoriteViewModel = viewModel(), groupViewModel: GroupViewModel = viewModel()) {
+        val items by groupViewModel.groups.collectAsState()
         val itemsPerRow = 3
         Log.i("FAVORITES", "$items")
 
         Column(
             modifier = Modifier.padding(8.dp)
         ) {
-            items.chunked(itemsPerRow).forEach { rowItems ->
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    rowItems.forEach {
-                        Log.i("FAVORITES IN ROW", "$it")
-                        when (it) {
-                            is Device.ActionDevice -> cardComponent.ActionDeviceCard(it.groupid.toInt(), it)
-                            else -> cardComponent.TempAndStatusDeviceCard(it)
+
+            items.forEach{ group ->
+                group.devices.filter { it.favorite }.chunked(itemsPerRow).forEach { rowItems ->
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        rowItems.forEach {
+                            Log.i("FAVORITES IN ROW", "$it")
+                        when (it.messwertTyp) {
+                            "S" -> cardComponent.ActionDeviceCard(group.id, it)
+                            else -> cardComponent.TempAndStatusDeviceCard(group, it)
+                        }
                         }
                     }
                 }

@@ -43,6 +43,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.homedroid.app.viewmodel.FavoriteViewModel
 import com.homedroid.data.model.Device
 import com.homedroid.data.model.Group
+import com.homedroid.data.model.ParsedDevices
+import com.homedroid.data.model.ParsedGroup
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -60,7 +62,7 @@ class ModalButtomSheetComponent {
     @RequiresApi(Build.VERSION_CODES.Q)
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun ModalButtomSheet(openButtomSheet: BottomSheetViewModel, group: Group) {
+    fun ModalButtomSheet(openButtomSheet: BottomSheetViewModel, group: ParsedGroup) {
         ModalBottomSheet(
             onDismissRequest = { openButtomSheet.toggleBottomSheet() },
             modifier = Modifier.fillMaxHeight(),
@@ -77,7 +79,7 @@ class ModalButtomSheetComponent {
                     modifier = Modifier
                         .padding(top = 13.dp)
                 )
-                if(group.devices.filterIsInstance<Device.TemperatureDevice>().isNotEmpty()) {
+                if (group.devices.filter { it.messwertTyp == "Temp" || it.messwertTyp == "TLFH" }.isNotEmpty()) {
                     Text(
                         text = "Temperatur",
                         textAlign = TextAlign.Center,
@@ -85,23 +87,67 @@ class ModalButtomSheetComponent {
                         modifier = Modifier.padding(top = 8.dp)
                     )
                     LazyColumn {
-                        items(group.devices.filterIsInstance<Device.TemperatureDevice>()) { devices ->
-                            DeviceRow(devices)
+                        items(group.devices.filter { it.messwertTyp == "Temp"  || it.messwertTyp == "TLFH"}) { device ->
+                            DeviceRow(device)
                         }
                     }
                 }
-                Text(
-                    text = "Status",
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-                LazyColumn {
-                    items(group.devices.filterIsInstance<Device.StatusDevice>()) { devices ->
-                        DeviceRow(devices)
+
+                if (group.devices.filter { it.messwertTyp == "F" }.isNotEmpty()) {
+                    Text(
+                        text = "Fensterstatus",
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                    LazyColumn {
+                        items(group.devices.filter { it.messwertTyp == "F" }) { device ->
+                            DeviceRow(device)
+                        }
                     }
                 }
-                ActionDevicesRow(group.id,group.devices)
+
+                if (group.devices.filter { it.messwertTyp  == "R" }.isNotEmpty()) {
+                    Text(
+                        text = "Rollladen",
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                    LazyColumn {
+                        items(group.devices.filter { it.messwertTyp == "R" }) { device ->
+                            DeviceRow(device)
+                        }
+                    }
+                }
+
+                if (group.devices.filter { it.messwertTyp == "S" }.isNotEmpty()) {
+                    Text(
+                        text = "Status",
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+
+                        ActionDevicesRow(group.id,group.devices.filter { it.messwertTyp  == "S" })
+
+
+                }
+
+                if (group.devices.filter { it.messwertTyp.isNullOrEmpty() }.isNotEmpty()) {
+                    Text(
+                        text = "Geräte ohne Messwerttyp",
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                    LazyColumn {
+                        items(group.devices.filter { it.messwertTyp.isNullOrEmpty() }) { device ->
+                            DeviceRow(device)
+                        }
+                    }
+                }
+
             }
         }
     }
@@ -111,20 +157,22 @@ class ModalButtomSheetComponent {
      */
     @RequiresApi(Build.VERSION_CODES.Q)
     @Composable
-    fun ActionDevicesRow(groupId: Int, items: List<Device>) {
+    fun ActionDevicesRow(groupId: Int, items: List<ParsedDevices>) {
         val favoriteCardComponent = CardComponent()
+        Log.i("DEVICES IN LIST", "Devices In List ${items.size}")
 
-        Column{
+        Column {
             items.chunked(4).forEach { rowItems ->
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    rowItems.forEach { item ->
-                        if (item is Device.ActionDevice) {
-                            favoriteCardComponent.ActionDeviceCard(groupId, item)
-                        }
+                    Log.i("DEVICES IN LIST", "Devices In List ${rowItems.size}")
+
+                    items.forEach { item ->
+                        favoriteCardComponent.ActionDeviceCard(groupId, item)
                     }
+
                 }
             }
         }
@@ -135,7 +183,7 @@ class ModalButtomSheetComponent {
      */
     @OptIn(DelicateCoroutinesApi::class)
     @Composable
-    fun DeviceRow(device: Device, viewModel: FavoriteViewModel = viewModel()) {
+    fun DeviceRow(device: ParsedDevices, viewModel: FavoriteViewModel = viewModel()) {
         var swipeOffset by remember { mutableStateOf(0f) }
         var isFavorite by remember { mutableStateOf(false) }
 
@@ -165,16 +213,8 @@ class ModalButtomSheetComponent {
                     }
                 }
         ) {
-            when (device) {
-                is Device.StatusDevice -> {
-                    RowContent(
-                        name = device.name,
-                        value = device.value,
-                        unit = device.unit,
-                        swipeOffset
-                    )
-                }
-                is Device.TemperatureDevice -> {
+            when (device.messwertTyp) {
+                "TEMP", "TLFH" -> {
                     RowContent(
                         name = device.name,
                         value = device.value,
@@ -182,10 +222,15 @@ class ModalButtomSheetComponent {
                         swipeOffset
                     )
                 }
-
-                is Device.ActionDevice -> {}
+                else -> {
+                    RowContent(
+                        name = device.name,
+                        value = device.value,
+                        unit = "",
+                        swipeOffset
+                    )
+                }
             }
-
             /**
              * If the swipe offset is less than -swipeThreshold, the favorite button is shown
              */
@@ -197,10 +242,10 @@ class ModalButtomSheetComponent {
                         .align(Alignment.CenterEnd)
                         .clip(RoundedCornerShape(12.dp))
                         .clickable {
-                            if (viewModel.isFavorite(device)) {
-                                viewModel.removeFavorite(device)
+                            if (device.favorite) {
+                               // viewModel.removeFavorite(device)
                             } else {
-                                viewModel.addFavorite(device)
+                                //viewModel.addFavorite(device)
                                 Log.i("DEVICES CLICKED", device.toString())
 
                             }
@@ -213,8 +258,8 @@ class ModalButtomSheetComponent {
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = if (viewModel.isFavorite(device)) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
-                        contentDescription = if (viewModel.isFavorite(device)) "Favorite" else "No Favorite",
+                        imageVector = if (device.favorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                        contentDescription = if (device.favorite) "Favorite" else "No Favorite",
                         tint = Color.Black,
                         modifier = Modifier.fillMaxWidth(0.6F)
                     )

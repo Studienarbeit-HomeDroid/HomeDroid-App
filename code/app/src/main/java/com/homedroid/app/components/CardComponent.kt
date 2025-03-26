@@ -59,6 +59,8 @@ import com.homedroid.app.R
 import com.homedroid.app.viewmodel.FavoriteViewModel
 import com.homedroid.app.viewmodel.GroupViewModel
 import com.homedroid.data.model.Device
+import com.homedroid.data.model.ParsedDevices
+import com.homedroid.data.model.ParsedGroup
 
 class CardComponent {
 
@@ -76,7 +78,7 @@ class CardComponent {
     @OptIn(ExperimentalFoundationApi::class)
     @RequiresApi(Build.VERSION_CODES.Q)
     @Composable
-    fun TempAndStatusDeviceCard(device: Device, viewModel: FavoriteViewModel = viewModel()) {
+    fun TempAndStatusDeviceCard(group: ParsedGroup, device: ParsedDevices, viewModel: FavoriteViewModel = viewModel()) {
         var showDialog by remember { mutableStateOf(false) }
         val context = LocalContext.current
         val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
@@ -108,7 +110,6 @@ class CardComponent {
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
-                    if (device is Device.StatusDevice) {
                         Text(
                             text = device.name,
                             style = MaterialTheme.typography.bodyMedium.copy(
@@ -124,7 +125,7 @@ class CardComponent {
 
                         )
                         Text(
-                            text = device.group,
+                            text = group.name,
                             style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                             color = Color.Gray,
                             modifier = Modifier
@@ -135,41 +136,13 @@ class CardComponent {
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
-                    }else if (device is Device.TemperatureDevice)
-                    {
-                        Text(
-                            text = device.name,
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                fontWeight = FontWeight.Bold
-                            ),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(start = 10.dp)
-                                .padding(top = 3.dp),
-                            textAlign = TextAlign.Start,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
 
-                        )
 
-                        Text(
-                            text = device.group,
-                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                            color = Color.Gray,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(start = 10.dp)
-                                .padding(top = 3.dp),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            textAlign = TextAlign.Start
-                        )
-                    }
                 }
                 Text(
-                    text = when (device) {
-                        is Device.StatusDevice -> "${device.value} ${device.unit}"
-                        is Device.TemperatureDevice -> "${device.value} °C"
+                    text = when (device.messwertTyp) {
+                         "TLFH" -> "${device.value} °C"
+                          "TEMP" -> "${device.value} °C"
                         else -> "Unknown Type"
                     },
                     style = MaterialTheme.typography.bodySmall.copy(
@@ -204,9 +177,9 @@ class CardComponent {
                 },
                 confirmButton = {
                     Button(onClick = {
-                        if (device is Device.StatusDevice || device is Device.TemperatureDevice) {
-                            viewModel.removeFavorite(device)
-                        }
+//                        if (device is Device.StatusDevice || device is Device.TemperatureDevice) {
+//                            viewModel.removeFavorite(device)
+//                        }
                         showDialog = false
                     }) {
                         Text("OK")
@@ -237,11 +210,10 @@ class CardComponent {
     @RequiresApi(Build.VERSION_CODES.Q)
     @OptIn(ExperimentalFoundationApi::class)
     @Composable
-    fun ActionDeviceCard(groupId: Int?, device: Device.ActionDevice, viewModel: FavoriteViewModel = viewModel(), groupViewModel: GroupViewModel = viewModel()) {
+    fun ActionDeviceCard(groupId: Int?, device: ParsedDevices, viewModel: FavoriteViewModel = viewModel(), groupViewModel: GroupViewModel = viewModel()) {
         val context = LocalContext.current
         val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         var showDialog by remember { mutableStateOf(false) }
-        var isToggled by remember { mutableStateOf(device.status) }
         var showPopup by remember { mutableStateOf(false) }
 
 
@@ -326,7 +298,7 @@ class CardComponent {
                 containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.95F),
                 onDismissRequest = { showDialog = false },
                 icon = {
-                    if (viewModel.isFavorite(device)) {
+                    if (device.status) {
                         Icon(
                             imageVector = Icons.Filled.Favorite,
                             contentDescription = "Favorite",
@@ -345,16 +317,18 @@ class CardComponent {
                     }
                 },
                 title = {
-                    if (viewModel.isFavorite(device)) Text("Favorit entfernen") else Text("Favorit hinzufügen")
+                    if (device.status) Text("Favorit entfernen") else Text("Favorit hinzufügen")
                 },
                 confirmButton = {
                     Button(
                         onClick = {
                             showDialog = false
-                            if (viewModel.isFavorite(device)) {
-                                viewModel.removeFavorite(device)
+                            groupViewModel.updateFavorite(groupId, device)
+                            if (device.status) {
+
+                                //viewModel.removeFavorite(device)
                             } else {
-                                viewModel.addFavorite(device)
+                                //viewModel.addFavorite(device)
                             }
                         }
                     ) {
@@ -373,7 +347,7 @@ class CardComponent {
     }
 
    @Composable
-   fun PopUp(device: Device.ActionDevice, onDismiss: () -> Unit) {
+   fun PopUp(device: ParsedDevices, onDismiss: () -> Unit) {
        val hapticFeedback = LocalHapticFeedback.current
 
        val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.success_animation_green))

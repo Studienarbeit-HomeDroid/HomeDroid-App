@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.homedroid.data.interfaces.IFavoriteRepository
 import com.homedroid.data.model.Device
+import com.homedroid.data.model.ParsedDevices
 import com.homedroid.data.repositories.FavoriteRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,9 +32,9 @@ class FavoriteViewModel @Inject constructor(
         }
     }
 
-    fun updateFavorites(groupId: Int, device: Device.ActionDevice) {
+    fun updateFavorites(groupId: Int, device: ParsedDevices) {
         viewModelScope.launch {
-            favoriteRepository.updateFavorites(groupId, device)
+            //favoriteRepository.updateFavorites(groupId, device)
         }
     }
 
