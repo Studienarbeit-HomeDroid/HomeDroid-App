@@ -2,11 +2,17 @@ package com.homedroid.app.viewmodel
 
 import android.content.Context
 import android.net.Uri
+import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.Timestamp
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -20,7 +26,9 @@ import javax.net.ssl.*
 
 @HiltViewModel
 
-class ServerConfigViewModel @Inject constructor() : ViewModel() {
+class ServerConfigViewModel @Inject constructor(
+    private var database: FirebaseDatabase
+) : ViewModel() {
 
     var serverUrl: String? = null
     var certUri: Uri? = null
@@ -28,6 +36,23 @@ class ServerConfigViewModel @Inject constructor() : ViewModel() {
     private var connected = false
     var html: String? = null
 
+    private val logsRef: DatabaseReference = database.getReference("logs")
+
+    data class LogEntry(val message: String, val timestamp: Timestamp = Timestamp.now())
+
+    fun logDataToFirestore(logMessage: String) {
+
+        val logEntry = LogEntry(logMessage)
+        logsRef.push().setValue(logEntry)
+
+    }
+
+
+    private lateinit var firebaseAnalytics: FirebaseAnalytics
+
+    fun initAnalytics(context: Context) {
+        firebaseAnalytics = FirebaseAnalytics.getInstance(context)
+    }
 
     fun saveServerConfig(context: Context, url: String, uri: Uri?, password: String?, onResult: (Boolean) -> Unit) {
         serverUrl = url
@@ -36,6 +61,9 @@ class ServerConfigViewModel @Inject constructor() : ViewModel() {
 
         Log.d("ServerConfig", "Gespeicherte URL: $serverUrl")
         Log.d("ServerConfig", "Gespeichertes Zertifikat: $certUri")
+
+        initAnalytics(context)
+
 
         sendSecureRequest(context) { result ->
             if (result)
@@ -71,6 +99,10 @@ class ServerConfigViewModel @Inject constructor() : ViewModel() {
         } catch (e: Exception) {
             Log.e("HTTP", "Zertifikat konnte nicht gelesen werden ${e.message}", e)
             showToast(context, "Zertifikat konnte nicht gelesen werden: ${e.message}")
+            FirebaseCrashlytics.getInstance().log("Zertifikat konnte nicht gelesen werden")
+            FirebaseCrashlytics.getInstance().recordException(e)
+            logAnalyticsError("Zertifikat konnte nicht gelesen werden", e)
+
             throw e
         }
 
@@ -83,6 +115,10 @@ class ServerConfigViewModel @Inject constructor() : ViewModel() {
         } catch (e: Exception) {
             Log.e("HTTP", "Fehler beim Laden des Zertifikats: ${e.message}", e)
             showToast(context, "Fehler beim Laden des Zertifikats: ${e.message}")
+            FirebaseCrashlytics.getInstance().log("Fehler beim Laden des Zertifikats")
+            FirebaseCrashlytics.getInstance().recordException(e)
+            logAnalyticsError("Fehler beim Laden des Zertifikats\"", e)
+
             throw e
         }
 
@@ -93,6 +129,10 @@ class ServerConfigViewModel @Inject constructor() : ViewModel() {
         } catch (e: Exception) {
             Log.e("HTTP", "Fehler beim Initialisieren des KeyManagers: ${e.message}", e)
             showToast(context, "Fehler beim Initialisieren des KeyManagers: ${e.message}")
+            FirebaseCrashlytics.getInstance().log("Fehler beim Initialisieren des KeyManagers")
+            FirebaseCrashlytics.getInstance().recordException(e)
+            logAnalyticsError("Fehler beim Initialisieren des KeyManagers", e)
+
             throw e
         }
 
@@ -118,6 +158,10 @@ class ServerConfigViewModel @Inject constructor() : ViewModel() {
         } catch (e: Exception) {
             Log.e("HTTP", "Fehler beim Initialisieren von SSL: ${e.message}", e)
             showToast(context, "Fehler beim Initialisieren von SSL: ${e.message}")
+            FirebaseCrashlytics.getInstance().log("Fehler beim Initialisieren von SSL")
+            FirebaseCrashlytics.getInstance().recordException(e)
+            logAnalyticsError("Fehler beim Initialisieren von SSL", e)
+
             throw e
         }
 
@@ -128,6 +172,7 @@ class ServerConfigViewModel @Inject constructor() : ViewModel() {
     }
 
     fun checkConnection(context: Context, onResult:  (Boolean) -> Unit) {
+        initAnalytics(context)
         Log.d("Result", "Checkconnection")
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -141,10 +186,17 @@ class ServerConfigViewModel @Inject constructor() : ViewModel() {
                 Log.d("HTTP", "After")
                 val bodyString = response.body?.string()
                 html = bodyString
+                if (bodyString != null) {
+                    logDataToFirestore(bodyString)
+                }
                 Log.d("HTTP", "HTML: $html")
                 onResult(true)
             } catch (e: Exception) {
                 Log.e("HTTP", "Fehler: ${e.message}")
+                FirebaseCrashlytics.getInstance().log("Fehler bei der Secure Request")
+                FirebaseCrashlytics.getInstance().recordException(e)
+                logAnalyticsError("Fehler bei der Secure Request", e)
+
                 onResult(false)
             }
         }
@@ -175,11 +227,13 @@ class ServerConfigViewModel @Inject constructor() : ViewModel() {
                     Log.d("DEBUG", "Preferences gespeichert")
                     val bodyString = response.body?.string()
                     html = bodyString
+                    logAnalyticsSuccess("connection_success", response.code, bodyString)
                     onResult(true)
 
                 } catch (e: Exception) {
                     onResult(false)
                     Log.e("DEBUG", "Fehler: ${e.message}", e)
+                    logAnalyticsError("connection_error", e)
                 }
             }
         }
@@ -198,5 +252,25 @@ class ServerConfigViewModel @Inject constructor() : ViewModel() {
                 Toast.makeText(context, message, Toast.LENGTH_LONG).show()
             }
         }
+
+    private fun logAnalyticsSuccess(eventName: String, responseCode: Int, responseBody: String?) {
+        val params = Bundle().apply {
+            putString("event_name", eventName)
+            putInt("response_code", responseCode)
+            putString("response_body", responseBody)
+        }
+        firebaseAnalytics.logEvent("request_success", params)
+    }
+
+    private fun logAnalyticsError(eventName: String, exception: Exception) {
+        val params = Bundle().apply {
+            putString("event_name", eventName)
+            putString("error_message", exception.message)
+        }
+        firebaseAnalytics.logEvent("request_failure", params)
+    }
+
+
+
 
 }

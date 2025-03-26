@@ -131,8 +131,6 @@ class ModalButtomSheetComponent {
                     )
 
                         ActionDevicesRow(group.id,group.devices.filter { it.messwertTyp  == "S" })
-
-
                 }
 
                 if (group.devices.filter { it.messwertTyp.isNullOrEmpty() }.isNotEmpty()) {

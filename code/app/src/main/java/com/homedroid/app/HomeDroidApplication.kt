@@ -8,8 +8,11 @@ import coil.decode.SvgDecoder
 import coil.disk.DiskCache
 import coil.memory.MemoryCache
 import coil.util.DebugLogger
+import com.google.android.gms.analytics.GoogleAnalytics
+import com.google.android.gms.analytics.Tracker
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
@@ -20,11 +23,17 @@ class HomeDroidApplication : Application(), ImageLoaderFactory {
      * Initializes Firebase Database
      */
     private lateinit var auth: FirebaseAuth
+    private lateinit var mTracker: Tracker
+
 
     override fun onCreate() {
         super.onCreate()
             FirebaseApp.initializeApp(this)
-            auth = FirebaseAuth.getInstance()
+            FirebaseCrashlytics.getInstance().isCrashlyticsCollectionEnabled = true
+            val analytics = GoogleAnalytics.getInstance(this)
+        // Erstelle einen Tracker, indem du die Tracking-ID verwendest
+            mTracker = analytics.newTracker("UA-XXXXXXX-Y")
+         auth = FirebaseAuth.getInstance()
             signIn()
     }
 
