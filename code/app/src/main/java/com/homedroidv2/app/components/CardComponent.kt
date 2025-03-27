@@ -229,7 +229,6 @@ class CardComponent {
                         if(groupId != null)
                         {
                             groupViewModel.updateGroup(groupId, device)
-                            viewModel.updateFavorites(groupId, device)
                         }
                     },
                     onLongClick = {
@@ -379,7 +378,11 @@ class CardComponent {
                            progress = { progress },
                            modifier = Modifier.size(80.dp)
                        )
-                       Text("${device.name} wurde angeschaltet", color = Color.Black)
+                       Text(
+                           "${device.name} wurde angeschaltet",
+                           color = Color.Black,
+                           maxLines = 1,
+                           overflow = TextOverflow.Ellipsis)
                    }
 
                }

@@ -130,6 +130,7 @@ dependencies {
     // Material3 library for the latest UI components
     implementation 'androidx.compose.material3:material3-android:1.3.1'
     implementation 'com.google.firebase:firebase-database-ktx:21.0.0'
+    implementation 'com.google.firebase:firebase-crashlytics-ktx:19.4.2'
 
     // Unit testing dependencies
     testImplementation 'junit:junit:4.13.2'

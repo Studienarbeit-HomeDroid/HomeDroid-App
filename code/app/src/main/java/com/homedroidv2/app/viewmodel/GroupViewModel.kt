@@ -33,7 +33,7 @@ class GroupViewModel @Inject constructor(
     fun updateGroup(groupId: Int?, device: ParsedDevices) {
         Log.d("Firebase Group", "Group exists: $device")
         viewModelScope.launch {
-            //groupRepository.updateGroup(groupId, device)
+            groupRepository.updateDevice(groupId, device)
         }
     }
 
