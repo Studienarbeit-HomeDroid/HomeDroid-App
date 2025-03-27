@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package com.homedroid.data.repositories
+package com.homedroidv2.data.repositories
 
 import android.util.Log
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
-import com.homedroid.data.interfaces.IGroupRepository
-import com.homedroid.data.model.Device
-import com.homedroid.data.model.Group
+import com.homedroidv2.data.interfaces.IGroupRepository
+import com.homedroidv2.data.model.Device
+import com.homedroidv2.data.model.Group
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
-import com.homedroid.data.model.ParsedDevices
-import com.homedroid.data.model.ParsedGroup
+import com.homedroidv2.data.model.ParsedDevices
+import com.homedroidv2.data.model.ParsedGroup
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow

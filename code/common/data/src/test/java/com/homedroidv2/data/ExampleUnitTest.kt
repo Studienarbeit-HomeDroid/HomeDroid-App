@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.homedroid.data
+package com.homedroidv2.data
 
 import org.junit.Assert.assertEquals
 import org.junit.Test

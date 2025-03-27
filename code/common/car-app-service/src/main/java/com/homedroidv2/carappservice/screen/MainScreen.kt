@@ -1,4 +1,4 @@
-package com.homedroid.carappservice.screen
+package com.homedroidv2.carappservice.screen
 
 import android.os.Build
 import androidx.annotation.OptIn
@@ -13,12 +13,11 @@ import androidx.car.app.model.TabContents
 import androidx.car.app.model.TabTemplate
 import androidx.car.app.model.Template
 import androidx.core.graphics.drawable.IconCompat
-import com.google.firebase.database.FirebaseDatabase
-import com.homedroid.carappservice.R
-import com.homedroid.carappservice.components.TabInfo
-import com.homedroid.data.repositories.DashboardRepository
-import com.homedroid.data.repositories.FavoriteRepository
-import com.homedroid.data.repositories.GroupRepository
+import com.homedroidv2.carappservice.R
+import com.homedroidv2.carappservice.components.TabInfo
+import com.homedroidv2.data.repositories.DashboardRepository
+import com.homedroidv2.data.repositories.FavoriteRepository
+import com.homedroidv2.data.repositories.GroupRepository
 
 /**
     Generates the user Inferfaces

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.homedroid.data.model
+package com.homedroidv2.data.model
 
 data class Group(
     val id: Int = 0,

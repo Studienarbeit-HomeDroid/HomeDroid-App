@@ -1,6 +1,6 @@
-package com.homedroid.data.interfaces
+package com.homedroidv2.data.interfaces
 
-import com.homedroid.data.model.DashboardValues
+import com.homedroidv2.data.model.DashboardValues
 import kotlinx.coroutines.flow.Flow
 
 interface IDashboardRepository {

@@ -1,7 +1,7 @@
-package com.homedroid.data.login
+package com.homedroidv2.data.login
 
 import android.content.Context
-import com.homedroid.data.network.HtmlClient
+import com.homedroidv2.data.network.HtmlClient
 import javax.inject.Inject
 import javax.inject.Singleton
 

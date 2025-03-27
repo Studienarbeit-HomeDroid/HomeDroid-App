@@ -1,7 +1,6 @@
-package com.homedroid.carappservice.components
+package com.homedroidv2.carappservice.components
 
 import androidx.annotation.DrawableRes
-import androidx.annotation.StringRes
 
 data class HomeListInfo(
     val listId: String,

@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace 'com.homedroid.carappservice'
+    namespace 'com.homedroidv2.carappservice'
     compileSdk 35
 
     defaultConfig {

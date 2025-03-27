@@ -1,4 +1,4 @@
-package com.homedroid.carappservice.screen
+package com.homedroidv2.carappservice.screen
 
 import androidx.car.app.CarContext
 import androidx.car.app.Screen
@@ -8,15 +8,13 @@ import androidx.car.app.model.ListTemplate
 import androidx.car.app.model.Row
 import androidx.car.app.model.Template
 import androidx.lifecycle.lifecycleScope
-import com.homedroid.carappservice.R
 import android.util.Log
 import androidx.annotation.OptIn
 import androidx.car.app.annotations.ExperimentalCarApi
-import com.homedroid.carappservice.components.HomeListInfo
-import com.homedroid.data.model.DashboardData
-import com.homedroid.data.model.DashboardValues
-import com.homedroid.data.model.Device
-import com.homedroid.data.repositories.DashboardRepository
+import com.homedroidv2.carappservice.R
+import com.homedroidv2.carappservice.components.HomeListInfo
+import com.homedroidv2.data.model.DashboardValues
+import com.homedroidv2.data.repositories.DashboardRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch

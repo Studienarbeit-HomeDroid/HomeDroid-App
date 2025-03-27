@@ -1,7 +1,6 @@
-package com.homedroid.carappservice.screen
+package com.homedroidv2.carappservice.screen
 
 import android.os.Build
-import android.os.Looper
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.car.app.CarContext
@@ -11,18 +10,16 @@ import androidx.car.app.model.GridItem
 import androidx.car.app.model.GridTemplate
 import androidx.car.app.model.ItemList
 import androidx.car.app.model.Template
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import com.homedroid.carappservice.BitMapGenerator
-import com.homedroid.data.model.Device
-import com.homedroid.data.repositories.FavoriteRepository
-import com.homedroid.data.repositories.GroupRepository
+import com.homedroidv2.carappservice.BitMapGenerator
+import com.homedroidv2.data.model.Device
+import com.homedroidv2.data.repositories.FavoriteRepository
+import com.homedroidv2.data.repositories.GroupRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
 
 /**
  * A screen that displays a list of favorite devices in a grid layout.

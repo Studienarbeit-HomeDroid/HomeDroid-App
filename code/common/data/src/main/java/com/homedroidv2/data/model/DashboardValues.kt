@@ -1,4 +1,4 @@
-package com.homedroid.data.model
+package com.homedroidv2.data.model
 
 data class DashboardValues(
     val id: String = "",

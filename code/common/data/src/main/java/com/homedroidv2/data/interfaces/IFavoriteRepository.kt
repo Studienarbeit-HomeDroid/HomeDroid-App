@@ -1,6 +1,6 @@
-package com.homedroid.data.interfaces
+package com.homedroidv2.data.interfaces
 
-import com.homedroid.data.model.Device
+import com.homedroidv2.data.model.Device
 import kotlinx.coroutines.flow.Flow
 
 interface IFavoriteRepository {

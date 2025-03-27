@@ -1,4 +1,4 @@
-package com.homedroid.carappservice
+package com.homedroidv2.carappservice
 
 import android.graphics.Bitmap
 import android.graphics.Canvas

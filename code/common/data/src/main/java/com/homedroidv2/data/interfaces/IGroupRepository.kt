@@ -1,9 +1,9 @@
-package com.homedroid.data.interfaces
+package com.homedroidv2.data.interfaces
 
-import com.homedroid.data.model.Device
-import com.homedroid.data.model.Group
-import com.homedroid.data.model.ParsedDevices
-import com.homedroid.data.model.ParsedGroup
+import com.homedroidv2.data.model.Device
+import com.homedroidv2.data.model.Group
+import com.homedroidv2.data.model.ParsedDevices
+import com.homedroidv2.data.model.ParsedGroup
 import kotlinx.coroutines.flow.Flow
 
 interface IGroupRepository {

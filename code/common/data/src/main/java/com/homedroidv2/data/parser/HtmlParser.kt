@@ -1,14 +1,14 @@
-package com.homedroid.data.parser
+package com.homedroidv2.data.parser
 
 import android.content.Context
 import android.util.Log
-import com.homedroid.data.model.Device
-import com.homedroid.data.model.Group
-import com.homedroid.data.network.HtmlClient
-import com.homedroid.data.repositories.GroupRepository
+import com.homedroidv2.data.model.Device
+import com.homedroidv2.data.model.Group
+import com.homedroidv2.data.network.HtmlClient
+import com.homedroidv2.data.repositories.GroupRepository
 import com.fleeksoft.ksoup.Ksoup
-import com.homedroid.data.model.ParsedDevices
-import com.homedroid.data.model.ParsedGroup
+import com.homedroidv2.data.model.ParsedDevices
+import com.homedroidv2.data.model.ParsedGroup
 import java.io.File
 import java.security.MessageDigest
 import javax.inject.Inject

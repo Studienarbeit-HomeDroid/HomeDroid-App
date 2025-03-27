@@ -1,4 +1,4 @@
-package com.homedroid.carappservice
+package com.homedroidv2.carappservice
 
   import androidx.test.platform.app.InstrumentationRegistry
   import androidx.test.ext.junit.runners.AndroidJUnit4

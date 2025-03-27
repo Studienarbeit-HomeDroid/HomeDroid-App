@@ -1,8 +1,7 @@
-package com.homedroid.data.network
+package com.homedroidv2.data.network
 
 import IconResponse
 import android.util.Log
-import com.google.android.gms.common.api.Response
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient

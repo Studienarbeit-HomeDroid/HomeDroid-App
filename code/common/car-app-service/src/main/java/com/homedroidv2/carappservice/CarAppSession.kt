@@ -1,14 +1,13 @@
-package com.homedroid.carappservice
+package com.homedroidv2.carappservice
 
 import android.content.Intent
 import android.util.Log
-import androidx.car.app.CarContext
 import androidx.car.app.Screen
 import androidx.car.app.Session
-import com.homedroid.carappservice.screen.MainScreen
-import com.homedroid.data.repositories.DashboardRepository
-import com.homedroid.data.repositories.FavoriteRepository
-import com.homedroid.data.repositories.GroupRepository
+import com.homedroidv2.carappservice.screen.MainScreen
+import com.homedroidv2.data.repositories.DashboardRepository
+import com.homedroidv2.data.repositories.FavoriteRepository
+import com.homedroidv2.data.repositories.GroupRepository
 
 /**
  * Instance of a client app running on a display in the vehicle

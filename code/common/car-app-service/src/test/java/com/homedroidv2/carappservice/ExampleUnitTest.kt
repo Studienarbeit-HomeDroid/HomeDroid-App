@@ -1,4 +1,4 @@
-package com.homedroid.carappservice
+package com.homedroidv2.carappservice
 
 import org.junit.Test
 import org.junit.Assert.*
