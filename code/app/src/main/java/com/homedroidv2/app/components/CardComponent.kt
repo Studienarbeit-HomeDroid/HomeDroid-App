@@ -142,7 +142,7 @@ class CardComponent {
                     text = when (device.messwertTyp) {
                          "TLFH" -> "${device.value} °C"
                           "TEMP" -> "${device.value} °C"
-                        else -> "Unknown Type"
+                        else -> device.value
                     },
                     style = MaterialTheme.typography.bodySmall.copy(
                         fontSize = 16.sp,

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -17,9 +18,17 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
+import androidx.compose.material3.TabRowDefaults
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,74 +47,149 @@ class DashboardComponent {
      * Displays the Dashboard Card, which displays the important information's of the website
      */
     @Composable
-    fun Dashboard( viewModel: DashboardViewModel = viewModel()) {
+    fun Dashboard() {
+        var selectedTabIndex by remember { mutableStateOf(0) }
+
+        HomeDroidTheme {
+            Column {
+                val tabTitles = listOf("Dashboard", "Heizung")
+
+                TabRow(
+                    selectedTabIndex = selectedTabIndex,
+                    containerColor = Color.Transparent,
+                    contentColor = MaterialTheme.colorScheme.onBackground,
+                    indicator = {}, // kein Unterstrich
+                    divider = {}
+                ) {
+                    tabTitles.forEachIndexed { index, title ->
+                        val isSelected = selectedTabIndex == index
+                        Tab(
+                            selected = isSelected,
+                            onClick = { selectedTabIndex = index },
+                            selectedContentColor = MaterialTheme.colorScheme.onPrimary,
+                            unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        ) {
+                            Text(
+                                text = title,
+                                modifier = Modifier
+                                    .padding(vertical = 8.dp, horizontal = 16.dp)
+                                    .background(
+                                        color = if (isSelected)
+                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                                        else
+                                            Color.Transparent,
+                                        shape = MaterialTheme.shapes.small
+                                    )
+                                    .padding(vertical = 6.dp, horizontal = 12.dp),
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                )
+                            )
+                        }
+                    }
+                }
+                when (selectedTabIndex) {
+                    0 -> DashboardView()
+                    1 -> HeizungView()
+                }
+            }
+        }
+    }
+
+
+    @Composable
+    fun DashboardView(viewModel: DashboardViewModel = viewModel()){
         val dashboardData = viewModel.dashboardData.collectAsState()
         Log.d("DashboardComponent", "dashboardData: $dashboardData")
-        HomeDroidTheme {
-            Text(
-                text = "Dashboard",
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier
-                    .padding(top = 13.dp)
-                    .padding(bottom = 8.dp)
+        ElevatedCard(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(275.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.secondary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
             )
-            ElevatedCard(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(275.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.secondary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
+        ) {
+
+            Column{
+                /**
+                 * Displays the last update time of the Dashboard data's
+                 */
+                Text(
+                    text = "1.10.24 | 16:12:22",
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                    color = Color.Gray,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(end = 10.dp)
+                        .padding(top = 5.dp),
+                    textAlign = TextAlign.End
                 )
-            ) {
+                dashboardData.value?.chunked(3)?.forEach { data ->
 
-                Column {
-                    /**
-                     * Displays the last update time of the Dashboard data's
-                     */
-                    Text(
-                        text = "1.10.24 | 16:12:22",
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                        color = Color.Gray,
+                    Row(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(end = 10.dp)
-                            .padding(top = 5.dp),
-                        textAlign = TextAlign.End
-                    )
-                    dashboardData.value?.chunked(3)?.forEach { data ->
-
-                        Row(
-                            modifier = Modifier
-                                .align(Alignment.CenterHorizontally)
-                                .padding(top = 10.dp)
-                        ) {
-                            data.forEach { data ->
-                                Box(
-                                    Modifier.size(width = 110.dp, height = 110.dp)
-                                )
-                                {
-                                    Column {
-                                        BoxHeaderText(data.title)
-                                        BoxDescriptionText(data.subtitle.get(0))
-                                        if (data.values.isNotEmpty()) {
-                                            if(data.id.equals("1"))
-                                            {
-                                                BoxImageValue(data.values.get(0))
-                                            }
-                                            else
-                                            {
-                                                BoxValueText(data.values.get(0), data.unit)
-                                            }
+                            .align(Alignment.CenterHorizontally)
+                            .padding(top = 10.dp)
+                    ) {
+                        data.forEach { data ->
+                            Box(
+                                Modifier.size(width = 110.dp, height = 110.dp)
+                            ) {
+                                Column(
+                                    modifier = Modifier.fillMaxSize(),
+                                ) {
+                                    BoxHeaderText(data.title)
+                                    BoxDescriptionText(data.subtitle.get(0))
+                                    if (data.values.isNotEmpty()) {
+                                        if (data.id == "1") {
+                                            BoxImageValue(data.values[0])
+                                        } else {
+                                            BoxValueText(data.values[0], data.unit)
                                         }
-                                        if (data.subtitle.size == 2) {
-                                            BoxDescriptionText(data.subtitle.get(1))
-                                            BoxValueText(data.values.get(1), data.unit)
-                                        }
+                                    }
+                                    if (data.subtitle.size == 2) {
+                                        BoxDescriptionText(data.subtitle[1])
+                                        BoxValueText(data.values[1], data.unit)
                                     }
                                 }
                             }
                         }
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
+    fun HeizungView(viewModel: DashboardViewModel = viewModel()){
+        val heizungData = viewModel.heizungData.collectAsState()
+        ElevatedCard(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(275.dp),
+        colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.secondary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            )
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                heizungData.value.forEach {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = it.name,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = "${it.values} ${it.unit}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = TextAlign.End
+                        )
                     }
                 }
             }

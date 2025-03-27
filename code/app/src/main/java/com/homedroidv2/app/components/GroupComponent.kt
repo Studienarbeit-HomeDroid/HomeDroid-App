@@ -63,19 +63,13 @@ class GroupComponent {
             ) {
                 groupsFlowList.value.forEach { group ->
                     item {
-                        Group(group)
+                        if (group.name != "Strom")
+                        {
+                            Group(group)
+                        }
                     }
                 }
             }
-
-        if (!htmlIsLoaded) {
-            Handler(Looper.getMainLooper()).postDelayed({
-                Toast.makeText(context, "Der Server ist momentan nicht erreichbar. Möglicherweise ist die Benutzeroberfläche veraltet.", Toast.LENGTH_LONG).show()
-            }, 3000) // 3000 Millisekunden = 3 Sekunden
-        }
-
-
-
     }
 
 

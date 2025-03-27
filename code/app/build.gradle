@@ -44,9 +44,9 @@ android {
         // Target SDK version the app is optimized for
         targetSdk 35
         // Version code for the application
-        versionCode 4
+        versionCode 11
         // Version name for the application
-        versionName "4"
+        versionName "11"
 
         // Custom test instrumentation runner
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

@@ -10,6 +10,7 @@ import androidx.annotation.RequiresApi
 import androidx.car.app.connection.CarConnection
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.homedroidv2.app.screens.LoginScreen
 import com.homedroidv2.app.screens.MainScreen
@@ -89,7 +90,19 @@ class MainApp : ComponentActivity() {
                         LaunchedEffect(Unit) {
                             isParsing = true
                             withContext(Dispatchers.IO) {
-                                htmlIsLoaded = htmlParser.checkHtmlChanges(html)
+                                htmlParser.checkHtmlChanges(html){ result ->
+                                    if(result)
+                                    {
+                                        viewModel.fetchAllDatas(this@MainApp)
+                                        htmlIsLoaded = true
+
+                                    }else
+                                    {
+                                        //viewModel.fetchAllDatas(this@MainApp)
+                                        htmlIsLoaded = false
+
+                                    }
+                                }
                             }
                             isParsing = false
                             showSplash = false
@@ -98,7 +111,7 @@ class MainApp : ComponentActivity() {
                         if (showSplash) {
                             splashActivity.SplashScreen(isParsing) {}
                         } else {
-                            mainActivity.MainScreen(carConnectionType, htmlIsLoaded)
+                            mainActivity.MainScreen(this, carConnectionType, htmlIsLoaded)
                         }
                     }
                 }

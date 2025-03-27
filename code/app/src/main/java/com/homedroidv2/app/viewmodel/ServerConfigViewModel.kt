@@ -2,22 +2,29 @@ package com.homedroidv2.app.viewmodel
 
 import android.content.Context
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
+import com.homedroidv2.data.repositories.DashboardRepository
+import com.homedroidv2.data.repositories.GroupRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import org.json.JSONObject
 import java.io.InputStream
+import java.net.URL
 import java.security.KeyStore
 import java.time.LocalDateTime
 import javax.inject.Inject
@@ -26,7 +33,9 @@ import javax.net.ssl.*
 @HiltViewModel
 
 class ServerConfigViewModel @Inject constructor(
-    private var database: FirebaseDatabase
+    private var database: FirebaseDatabase,
+    private val dashboardRepository: DashboardRepository,
+    private val groupRepository: GroupRepository
 ) : ViewModel() {
 
     var serverUrl: String? = null
@@ -37,7 +46,7 @@ class ServerConfigViewModel @Inject constructor(
 
     private val logsRef: DatabaseReference = database.getReference("logs")
 
-    data class LogEntry(val message: String, val timestamp: LocalDateTime = LocalDateTime.now())
+    data class LogEntry constructor(val message: String, val timestamp: LocalDateTime = LocalDateTime.now())
 
     fun logDataToFirestore(logMessage: String) {
 
@@ -101,7 +110,7 @@ class ServerConfigViewModel @Inject constructor(
             FirebaseCrashlytics.getInstance().log("Zertifikat konnte nicht gelesen werden")
             FirebaseCrashlytics.getInstance().recordException(e)
             logAnalyticsError("Zertifikat konnte nicht gelesen werden", e)
-            logDataToFirestore("Zertifikat konnte nicht gelesen werden")
+            logDataToFirestore(" URL: $serverUrl Zertifikat konnte nicht gelesen werden : $e")
 
             throw e
         }
@@ -118,7 +127,7 @@ class ServerConfigViewModel @Inject constructor(
             FirebaseCrashlytics.getInstance().log("Fehler beim Laden des Zertifikats")
             FirebaseCrashlytics.getInstance().recordException(e)
             logAnalyticsError("Fehler beim Laden des Zertifikats\"", e)
-            logDataToFirestore("Fehler beim Laden des Zertifikats")
+            logDataToFirestore("URL: $serverUrl  Fehler beim Laden des Zertifikats: $e")
 
             throw e
         }
@@ -133,7 +142,7 @@ class ServerConfigViewModel @Inject constructor(
             FirebaseCrashlytics.getInstance().log("Fehler beim Initialisieren des KeyManagers")
             FirebaseCrashlytics.getInstance().recordException(e)
             logAnalyticsError("Fehler beim Initialisieren des KeyManagers", e)
-            logDataToFirestore("Fehler beim Initialisieren des KeyManagers")
+            logDataToFirestore("URL: $serverUrl  Fehler beim Initialisieren des KeyManagers : $e")
 
             throw e
         }
@@ -162,8 +171,8 @@ class ServerConfigViewModel @Inject constructor(
             showToast(context, "Fehler beim Initialisieren von SSL: ${e.message}")
             FirebaseCrashlytics.getInstance().log("Fehler beim Initialisieren von SSL")
             FirebaseCrashlytics.getInstance().recordException(e)
-            logAnalyticsError("Fehler beim Initialisieren von SSL", e)
-            logDataToFirestore("Fehler beim Initialisieren von SSL")
+            logAnalyticsError(" URL: $serverUrl Fehler beim Initialisieren von SSL", e)
+            logDataToFirestore(" URL: $serverUrl Fehler beim Initialisieren von SSL : $e")
 
 
             throw e
@@ -200,7 +209,7 @@ class ServerConfigViewModel @Inject constructor(
                 FirebaseCrashlytics.getInstance().log("Fehler bei der Secure Request")
                 FirebaseCrashlytics.getInstance().recordException(e)
                 logAnalyticsError("Fehler bei der Secure Request", e)
-                logDataToFirestore("Fehler bei der Secure Request")
+                logDataToFirestore(" URL: $serverUrl Fehler bei der Secure Request: $e")
 
 
                 onResult(false)
@@ -241,9 +250,12 @@ class ServerConfigViewModel @Inject constructor(
 
                 } catch (e: Exception) {
                     onResult(false)
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "Ein Fehler ist aufgetreten: ${e.message}", Toast.LENGTH_LONG).show()
+                    }
                     Log.e("DEBUG", "Fehler: ${e.message}", e)
                     logAnalyticsError("connection_error", e)
-                    logDataToFirestore("Fehler bei der sendSecureRequest")
+                    logDataToFirestore("URL: $serverUrl Fehler bei der sendSecureRequest : $e")
 
                 }
             }
@@ -280,6 +292,131 @@ class ServerConfigViewModel @Inject constructor(
         }
         firebaseAnalytics.logEvent("request_failure", params)
     }
+
+    public fun fetchAllDatas(context: Context)
+    {
+        viewModelScope.launch {
+            try {
+                fetchHeizungData(context)
+                fetchSolarData(context)
+            } catch (e: Exception)
+            {
+                logDataToFirestore("URL: $serverUrl Fehler bei fetchAllDatas : $e")
+            }
+        }
+    }
+
+    fun fetchSolarData(context: Context){
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val url = "${serverUrl}/sh/solar/opendtu.php"
+                val client = createSecureClient(context)
+                Log.d("Solar", "URL: $url")
+                val request = Request.Builder().url(url).build()
+                Log.d("Solar", "Request: $request")
+                val response = client.newCall(request).execute()
+                Log.d("Solar", "Response: $response")
+                val responseBody =
+                    response.body?.string() ?: throw Exception("Response Body ist null")
+
+                val json = JSONObject(responseBody)
+
+                val power = json.getJSONObject("total").getJSONObject("Power")
+                val yieldDay = json.getJSONObject("total").getJSONObject("YieldDay")
+                val yieldTotal = json.getJSONObject("total").getJSONObject("YieldTotal")
+
+                val leistung = "${power.getDouble("v").toInt()} "
+                val tag = "${yieldDay.getDouble("v")}"
+                val gesamt = "${yieldTotal.getDouble("v")}"
+
+                dashboardRepository.updateSolarDatas(tag, gesamt)
+
+                Log.d("Solar", "Leistung: $leistung | Tag: $tag | Gesamt: $gesamt")
+            } catch (e: Exception) {
+                Log.e("Solar", "Fehler beim Abrufen der Solardaten: ${e.message}", e)
+                logDataToFirestore("URL: $serverUrl/sh/solar/opendtu.php Fehler bei fetchAllDatas : $e")
+
+                dashboardRepository.updateSolarDatas("err", "err")
+            }
+        }
+    }
+
+    fun fetchHeizungData(context: Context) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val url = "${serverUrl}/sh/visu/heizung/ajax/read_table_vicare_latest.php"
+                Log.d("Heizung", "URL: $url")
+                val client = createSecureClient(context)
+                Log.d("Heizung", "Client: $client")
+                val request = Request.Builder().url(url).build()
+                Log.d("Heizung", "Request: $request")
+                val response = client.newCall(request).execute()
+                Log.d("Heizung", "Response: $response")
+                val responseBody = response.body?.string()
+                val data =
+                    JSONObject("{\"array\":$responseBody}").getJSONArray("array").getJSONObject(0)
+
+                val tempAussen = data.getString("Temp_Aussen")
+                val timestamp = data.getString("timestamp")
+                val modus = data.getString("Modus")
+                val brennerStunden = data.getString("Brenner_Betriebsstunden")
+                val brennerStarts = data.getString("Brenner_Starts")
+
+                dashboardRepository.updateHeizungValue("1", tempAussen)
+                dashboardRepository.updateHeizungValue("2", modus)
+                dashboardRepository.updateHeizungValue("3", brennerStunden)
+                dashboardRepository.updateHeizungValue("4", brennerStarts)
+                dashboardRepository.updateHeizungValue("5", timestamp)
+
+                println("Außentemperatur: $tempAussen °C")
+                println("Zeitstempel: $timestamp")
+                println("Modus: $modus")
+                println("Brennerstunden: $brennerStunden")
+                println("Brennerstarts: $brennerStarts")
+            }
+            catch (e:Exception)
+            {
+                Log.e("Heizung", "Fehler beim Abrufen der Solardaten: ${e.message}", e)
+                logDataToFirestore("URL: $serverUrl/sh/solar/opendtu.php Fehler bei fetchAllDatas : $e")
+                dashboardRepository.updateHeizungValue("1", "err")
+                dashboardRepository.updateHeizungValue("2", "err")
+                dashboardRepository.updateHeizungValue("3", "err")
+                dashboardRepository.updateHeizungValue("4", "err")
+                dashboardRepository.updateHeizungValue("5", "err")
+            }
+        }
+    }
+
+
+
+
+
+    private fun  getDeviceDatas(context: Context, onResult: (Boolean) -> Unit)
+    {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val client = createSecureClient(context)
+                val url = serverUrl ?: return@launch
+
+                val request = Request.Builder().url(url).build()
+                val response = client.newCall(request).execute()
+
+
+                onResult(true)
+
+            } catch (e: Exception) {
+                onResult(false)
+
+                logDataToFirestore("URL: $serverUrl Fehler bei der sendSecureRequest : $e")
+
+            }
+        }
+
+    }
+
+
+
+
 
 
 
