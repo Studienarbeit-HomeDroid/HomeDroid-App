@@ -4,9 +4,12 @@ import android.content.Context
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.security.KeyChain
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -24,8 +27,10 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
 import java.io.InputStream
+import java.net.Socket
 import java.net.URL
 import java.security.KeyStore
+import java.security.PrivateKey
 import java.time.LocalDateTime
 import javax.inject.Inject
 import javax.net.ssl.*
@@ -43,6 +48,13 @@ class ServerConfigViewModel @Inject constructor(
     var password: String? = null
     private var connected = false
     var html: String? = null
+
+    private val _certAlias = mutableStateOf<String?>(null)
+    val certAlias: State<String?> = _certAlias
+
+    fun setCertAlias(alias: String?) {
+        _certAlias.value = alias
+    }
 
     private val logsRef: DatabaseReference = database.getReference("logs")
 
@@ -95,94 +107,229 @@ class ServerConfigViewModel @Inject constructor(
         password = pwd
     }
 
-
-
     private fun getCertificateStream(context: Context): InputStream? {
         return certUri?.let { context.contentResolver.openInputStream(it) }
     }
 
     private fun createSecureClient(context: Context): OkHttpClient {
-        val certStream = try {
-            getCertificateStream(context) ?: throw Exception("Kein Zertifikat gefunden")
+        val alias = try {
+            certAlias.value ?: throw Exception("Kein Zertifikatsalias gesetzt")
         } catch (e: Exception) {
-            Log.e("HTTP", "Zertifikat konnte nicht gelesen werden ${e.message}", e)
-            showToast(context, "Zertifikat konnte nicht gelesen werden: ${e.message}")
-            FirebaseCrashlytics.getInstance().log("Zertifikat konnte nicht gelesen werden")
-            FirebaseCrashlytics.getInstance().recordException(e)
-            logAnalyticsError("Zertifikat konnte nicht gelesen werden", e)
-            logDataToFirestore(" URL: $serverUrl Zertifikat konnte nicht gelesen werden : $e")
-
+            logDataToFirestore("URL: $serverUrl Fehler: Kein Zertifikatsalias gesetzt: $e")
             throw e
         }
 
-        val pwd = password ?: ""
-
-        val keyStore = try {
-            KeyStore.getInstance("PKCS12").apply {
-                load(certStream, pwd.toCharArray())
-            }
+        val privateKey = try {
+            KeyChain.getPrivateKey(context, alias)
         } catch (e: Exception) {
-            Log.e("HTTP", "Fehler beim Laden des Zertifikats: ${e.message}", e)
-            showToast(context, "Fehler beim Laden des Zertifikats: ${e.message}")
-            FirebaseCrashlytics.getInstance().log("Fehler beim Laden des Zertifikats")
-            FirebaseCrashlytics.getInstance().recordException(e)
-            logAnalyticsError("Fehler beim Laden des Zertifikats\"", e)
-            logDataToFirestore("URL: $serverUrl  Fehler beim Laden des Zertifikats: $e")
-
+            logDataToFirestore("URL: $serverUrl Fehler beim Abrufen des PrivateKeys von KeyChain: $e")
             throw e
         }
 
-        val kmf = try {
-            KeyManagerFactory.getInstance("X509").apply {
-                init(keyStore, pwd.toCharArray())
+        val certChain = try {
+            KeyChain.getCertificateChain(context, alias)
+        } catch (e: Exception) {
+            logDataToFirestore("URL: $serverUrl Fehler beim Abrufen der Zertifikatskette von KeyChain: $e")
+            throw e
+        }
+
+        val keyManager = try {
+            object : X509KeyManager {
+                override fun getClientAliases(keyType: String?, issuers: Array<java.security.Principal>?): Array<String>? {
+                    return arrayOf(alias)
+                }
+
+                override fun chooseClientAlias(keyTypes: Array<String>?, issuers: Array<java.security.Principal>?, socket: Socket?): String {
+                    return alias
+                }
+
+                override fun getCertificateChain(alias: String?): Array<java.security.cert.X509Certificate> {
+                    return certChain
+                        ?.mapNotNull { it as? java.security.cert.X509Certificate }
+                        ?.toTypedArray()
+                        ?: emptyArray()
+                }
+
+                override fun getPrivateKey(alias: String?): PrivateKey? {
+                    return privateKey
+                }
+
+                override fun getServerAliases(keyType: String?, issuers: Array<java.security.Principal>?): Array<String>? = null
+                override fun chooseServerAlias(keyType: String?, issuers: Array<java.security.Principal>?, socket: Socket?): String? = null
             }
         } catch (e: Exception) {
-            Log.e("HTTP", "Fehler beim Initialisieren des KeyManagers: ${e.message}", e)
-            showToast(context, "Fehler beim Initialisieren des KeyManagers: ${e.message}")
-            FirebaseCrashlytics.getInstance().log("Fehler beim Initialisieren des KeyManagers")
-            FirebaseCrashlytics.getInstance().recordException(e)
-            logAnalyticsError("Fehler beim Initialisieren des KeyManagers", e)
-            logDataToFirestore("URL: $serverUrl  Fehler beim Initialisieren des KeyManagers : $e")
-
+            logDataToFirestore("URL: $serverUrl Fehler beim Erstellen des KeyManagers: $e")
             throw e
         }
 
         val trustAllManager = object : X509TrustManager {
             override fun getAcceptedIssuers(): Array<java.security.cert.X509Certificate> = arrayOf()
-            override fun checkClientTrusted(
-                chain: Array<java.security.cert.X509Certificate>,
-                authType: String
-            ) {
-            }
-
-            override fun checkServerTrusted(
-                chain: Array<java.security.cert.X509Certificate>,
-                authType: String
-            ) {
-            }
+            override fun checkClientTrusted(chain: Array<java.security.cert.X509Certificate>, authType: String) {}
+            override fun checkServerTrusted(chain: Array<java.security.cert.X509Certificate>, authType: String) {}
         }
 
         val sslContext = try {
             SSLContext.getInstance("TLS").apply {
-                init(kmf.keyManagers, arrayOf(trustAllManager), null)
+                init(arrayOf(keyManager), arrayOf(trustAllManager), null)
             }
         } catch (e: Exception) {
-            Log.e("HTTP", "Fehler beim Initialisieren von SSL: ${e.message}", e)
-            showToast(context, "Fehler beim Initialisieren von SSL: ${e.message}")
-            FirebaseCrashlytics.getInstance().log("Fehler beim Initialisieren von SSL")
-            FirebaseCrashlytics.getInstance().recordException(e)
-            logAnalyticsError(" URL: $serverUrl Fehler beim Initialisieren von SSL", e)
-            logDataToFirestore(" URL: $serverUrl Fehler beim Initialisieren von SSL : $e")
-
-
+            logDataToFirestore("URL: $serverUrl Fehler beim Initialisieren von SSLContext: $e")
             throw e
         }
 
-        return OkHttpClient.Builder()
-            .sslSocketFactory(sslContext.socketFactory, trustAllManager)
-            .hostnameVerifier { _, _ -> true }
-            .build()
+        return try {
+            OkHttpClient.Builder()
+                .sslSocketFactory(sslContext.socketFactory, trustAllManager)
+                .hostnameVerifier { _, _ -> true }
+                .build()
+        } catch (e: Exception) {
+            logDataToFirestore("URL: $serverUrl Fehler beim Erstellen des OkHttpClient: $e")
+            throw e
+        }
     }
+
+//    private fun createSecureClient(context: Context): OkHttpClient {
+//        val alias = certAlias.value ?: throw Exception("Kein Zertifikatsalias gesetzt")
+//
+//        val privateKey = KeyChain.getPrivateKey(context, alias)
+//        val certChain = KeyChain.getCertificateChain(context, alias)
+//
+//        val keyManager = object : X509KeyManager {
+//            override fun getClientAliases(keyType: String?, issuers: Array<java.security.Principal>?): Array<String>? {
+//                return arrayOf(alias)
+//            }
+//
+//            override fun chooseClientAlias(keyTypes: Array<String>?, issuers: Array<java.security.Principal>?, socket: Socket?): String {
+//                return alias
+//            }
+//
+//            override fun getCertificateChain(alias: String?): Array<java.security.cert.X509Certificate> {
+//                return certChain
+//                    ?.mapNotNull { it as? java.security.cert.X509Certificate }
+//                    ?.toTypedArray()
+//                    ?: emptyArray()
+//            }
+//
+//            override fun getPrivateKey(alias: String?): PrivateKey? {
+//                return privateKey
+//            }
+//
+//            override fun getServerAliases(keyType: String?, issuers: Array<java.security.Principal>?): Array<String>? = null
+//            override fun chooseServerAlias(keyType: String?, issuers: Array<java.security.Principal>?, socket: Socket?): String? = null
+//        }
+//
+//        val trustAllManager = object : X509TrustManager {
+//            override fun getAcceptedIssuers(): Array<java.security.cert.X509Certificate> = arrayOf()
+//            override fun checkClientTrusted(chain: Array<java.security.cert.X509Certificate>, authType: String) {}
+//            override fun checkServerTrusted(chain: Array<java.security.cert.X509Certificate>, authType: String) {}
+//        }
+//
+//        val sslContext = SSLContext.getInstance("TLS")
+//        sslContext.init(arrayOf(keyManager), arrayOf(trustAllManager), null)
+//
+//        return OkHttpClient.Builder()
+//            .sslSocketFactory(sslContext.socketFactory, trustAllManager)
+//            .hostnameVerifier { _, _ -> true }
+//            .build()
+//    }
+
+//    private fun createSecureClient(context: Context): OkHttpClient {
+////        val certStream = try {
+////            getCertificateStream(context) ?: throw Exception("Kein Zertifikat gefunden")
+////        } catch (e: Exception) {
+////            Log.e("HTTP", "Zertifikat konnte nicht gelesen werden ${e.message}", e)
+////            showToast(context, "Zertifikat konnte nicht gelesen werden: ${e.message}")
+////            FirebaseCrashlytics.getInstance().log("Zertifikat konnte nicht gelesen werden")
+////            FirebaseCrashlytics.getInstance().recordException(e)
+////            logAnalyticsError("Zertifikat konnte nicht gelesen werden", e)
+////            logDataToFirestore(" URL: $serverUrl Zertifikat konnte nicht gelesen werden : $e")
+////
+////            throw e
+////        }
+////
+////        val pwd = password ?: ""
+////
+////        val keyStore = try {
+////            KeyStore.getInstance("PKCS12").apply {
+////                load(certStream, pwd.toCharArray())
+////            }
+////        } catch (e: Exception) {
+////            Log.e("HTTP", "Fehler beim Laden des Zertifikats: ${e.message}", e)
+////            showToast(context, "Fehler beim Laden des Zertifikats: ${e.message}")
+////            FirebaseCrashlytics.getInstance().log("Fehler beim Laden des Zertifikats")
+////            FirebaseCrashlytics.getInstance().recordException(e)
+////            logAnalyticsError("Fehler beim Laden des Zertifikats\"", e)
+////            logDataToFirestore("URL: $serverUrl  Fehler beim Laden des Zertifikats: $e")
+////
+////            throw e
+////        }
+//        val alias = certAlias.value
+//            ?: throw Exception("Kein Zertifikatsalias gesetzt")
+//
+//        val privateKey = KeyChain.getPrivateKey(context, alias)
+//        val certChain = KeyChain.getCertificateChain(context, alias)
+//
+//        val keyStore = KeyStore.getInstance("AndroidKeyStore").apply {
+//            load(null)
+//            setKeyEntry(
+//                alias,
+//                privateKey,
+//                null,
+//                certChain
+//            )
+//        }
+//
+//        val kmf = try {
+//            KeyManagerFactory.getInstance("X509").apply {
+//                init(keyStore, null)
+//            }
+//        } catch (e: Exception) {
+//            Log.e("HTTP", "Fehler beim Initialisieren des KeyManagers: ${e.message}", e)
+//            showToast(context, "Fehler beim Initialisieren des KeyManagers: ${e.message}")
+//            FirebaseCrashlytics.getInstance().log("Fehler beim Initialisieren des KeyManagers")
+//            FirebaseCrashlytics.getInstance().recordException(e)
+//            logAnalyticsError("Fehler beim Initialisieren des KeyManagers", e)
+//            logDataToFirestore("URL: $serverUrl  Fehler beim Initialisieren des KeyManagers : $e")
+//
+//            throw e
+//        }
+//
+//        val trustAllManager = object : X509TrustManager {
+//            override fun getAcceptedIssuers(): Array<java.security.cert.X509Certificate> = arrayOf()
+//            override fun checkClientTrusted(
+//                chain: Array<java.security.cert.X509Certificate>,
+//                authType: String
+//            ) {
+//            }
+//
+//            override fun checkServerTrusted(
+//                chain: Array<java.security.cert.X509Certificate>,
+//                authType: String
+//            ) {
+//            }
+//        }
+//
+//        val sslContext = try {
+//            SSLContext.getInstance("TLS").apply {
+//                init(kmf.keyManagers, arrayOf(trustAllManager), null)
+//            }
+//        } catch (e: Exception) {
+//            Log.e("HTTP", "Fehler beim Initialisieren von SSL: ${e.message}", e)
+//            showToast(context, "Fehler beim Initialisieren von SSL: ${e.message}")
+//            FirebaseCrashlytics.getInstance().log("Fehler beim Initialisieren von SSL")
+//            FirebaseCrashlytics.getInstance().recordException(e)
+//            logAnalyticsError(" URL: $serverUrl Fehler beim Initialisieren von SSL", e)
+//            logDataToFirestore(" URL: $serverUrl Fehler beim Initialisieren von SSL : $e")
+//
+//
+//            throw e
+//        }
+//
+//        return OkHttpClient.Builder()
+//            .sslSocketFactory(sslContext.socketFactory, trustAllManager)
+//            .hostnameVerifier { _, _ -> true }
+//            .build()
+//    }
 
     fun checkConnection(context: Context, onResult:  (Boolean) -> Unit) {
         initAnalytics(context)

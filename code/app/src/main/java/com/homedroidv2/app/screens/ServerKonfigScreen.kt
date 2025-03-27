@@ -1,9 +1,11 @@
 package com.homedroidv2.app.screens
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.util.Log
+import android.security.KeyChain
+import android.security.KeyChainAliasCallback
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -20,10 +22,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.homedroidv2.app.ui.theme.HomeDroidTheme
 import com.homedroidv2.app.viewmodel.ServerConfigViewModel
+import android.util.Log
 
 class ServerKonfigScreen : ComponentActivity() {
 
@@ -34,6 +39,22 @@ class ServerKonfigScreen : ComponentActivity() {
         var password by remember { mutableStateOf("") }
         var certUri by remember { mutableStateOf<Uri?>(null) }
 
+        val aliasSelected = remember { mutableStateOf(false) }
+
+//        if (!aliasSelected.value) {
+//            LaunchedEffect(Unit) {
+//                KeyChain.choosePrivateKeyAlias(
+//                    context as Activity,
+//                    { alias ->
+//                        Log.d("ServerKonfig", "Zertifikatsalias: $alias")
+//                        aliasSelected.value = true
+//                        viewModel.setCertAlias(alias)
+//
+//                    },
+//                    null, null, null, -1, null
+//                )
+//            }
+//        }
 
         val certPicker = rememberLauncherForActivityResult(
             contract = ActivityResultContracts.OpenDocument()
@@ -55,110 +76,129 @@ class ServerKonfigScreen : ComponentActivity() {
         HomeDroidTheme {
             Surface(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
+                    .fillMaxSize(),
                 color = MaterialTheme.colorScheme.background
             ) {
+
                 Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Center,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(
-                        text = "Server Konfiguration",
-                        style = MaterialTheme.typography.headlineSmall
-                    )
-
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    // Eingabefeld für die Server-URL
-                    OutlinedTextField(
-                        value = serverUrl,
-                        onValueChange = { serverUrl = it },
-                        label = { Text("Server URL eingeben") },
-                        leadingIcon = { Icon(Icons.Default.Cloud, contentDescription = "URL") },
-                        textStyle = TextStyle(color = Color.Black),
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent,
-                            focusedTextColor = MaterialTheme.colorScheme.onPrimary,
-                            focusedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                            focusedIndicatorColor = MaterialTheme.colorScheme.onPrimary,
-                            unfocusedIndicatorColor = MaterialTheme.colorScheme.onPrimary,
-                            unfocusedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                            unfocusedTextColor = MaterialTheme.colorScheme.onPrimary,
-                        )
-                    )
-
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    OutlinedTextField(
-                        value = password,
-                        maxLines = 1,
-                        leadingIcon = {
-                            Icon(Icons.Default.Key, contentDescription = "password")
-                        },
-                        label = { Text("Enter Username") },
-                        textStyle = TextStyle(
-                            fontWeight = FontWeight.Normal,
-                            color = MaterialTheme.colorScheme.onPrimary
-                        ),
-                        onValueChange = { password = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = TextFieldDefaults.colors(
-                            cursorColor = MaterialTheme.colorScheme.onPrimary,
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent,
-                            focusedTextColor = MaterialTheme.colorScheme.onPrimary,
-                            focusedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                            focusedIndicatorColor = MaterialTheme.colorScheme.onPrimary,
-                            unfocusedIndicatorColor = MaterialTheme.colorScheme.onPrimary,
-                            unfocusedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                            unfocusedTextColor = MaterialTheme.colorScheme.onPrimary,
-                        )
-                    )
-
-                    Spacer(modifier = Modifier.height(20.dp))
-
-
-                    // Button zum Zertifikat hochladen
-                    Button(
-                        onClick = { certPicker.launch(arrayOf("*/*")) },
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                        modifier = Modifier.fillMaxWidth()
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Icon(Icons.Default.Upload, contentDescription = "Zertifikat hochladen")
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Client-Zertifikat hochladen")
-                    }
+                        Text(
+                            text = "Server Konfiguration",
+                            style = MaterialTheme.typography.headlineSmall
+                        )
 
-                    Spacer(modifier = Modifier.height(10.dp))
+                        Spacer(modifier = Modifier.height(20.dp))
 
-                    certUri?.let {
-                        Text(text = "Zertifikat: ${it.lastPathSegment}", color = Color.Gray)
-                    }
+                        // Eingabefeld für die Server-URL
+                        OutlinedTextField(
+                            value = serverUrl,
+                            onValueChange = { serverUrl = it },
+                            label = { Text("Server URL eingeben") },
+                            leadingIcon = { Icon(Icons.Default.Cloud, contentDescription = "URL") },
+                            textStyle = TextStyle(
+                                color = MaterialTheme.colorScheme.onPrimary
+                            ),
+                            shape = RoundedCornerShape(16.dp),
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                focusedTextColor = MaterialTheme.colorScheme.onPrimary,
+                                focusedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                                focusedIndicatorColor = MaterialTheme.colorScheme.onPrimary,
+                                unfocusedIndicatorColor = MaterialTheme.colorScheme.onPrimary,
+                                unfocusedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                                unfocusedTextColor = MaterialTheme.colorScheme.onPrimary,
+                            )
+                        )
 
-                    Spacer(modifier = Modifier.height(30.dp))
+                        Spacer(modifier = Modifier.height(10.dp))
 
-                    // Speichern-Button
-                    Button(
-                        onClick = {
-                            viewModel.saveServerConfig(context, serverUrl, certUri, password){
-                                result ->
-                                if(result)
-                                {
-                                    onFinished()
+//                    OutlinedTextField(
+//                        value = password,
+//                        maxLines = 1,
+//                        leadingIcon = {
+//                            Icon(Icons.Default.Key, contentDescription = "password")
+//                        },
+//                        label = { Text("Enter Passwort") },
+//                        textStyle = TextStyle(
+//                            fontWeight = FontWeight.Normal,
+//                            color = MaterialTheme.colorScheme.onPrimary
+//                        ),
+//                        onValueChange = { password = it },
+//                        modifier = Modifier.fillMaxWidth(),
+//                        shape = RoundedCornerShape(16.dp),
+//                        colors = TextFieldDefaults.colors(
+//                            cursorColor = MaterialTheme.colorScheme.onPrimary,
+//                            focusedContainerColor = Color.Transparent,
+//                            unfocusedContainerColor = Color.Transparent,
+//                            focusedTextColor = MaterialTheme.colorScheme.onPrimary,
+//                            focusedLabelColor = MaterialTheme.colorScheme.onPrimary,
+//                            focusedIndicatorColor = MaterialTheme.colorScheme.onPrimary,
+//                            unfocusedIndicatorColor = MaterialTheme.colorScheme.onPrimary,
+//                            unfocusedLabelColor = MaterialTheme.colorScheme.onPrimary,
+//                            unfocusedTextColor = MaterialTheme.colorScheme.onPrimary,
+//                        )
+//                    )
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+
+
+                        Button(
+                            onClick = {
+                                KeyChain.choosePrivateKeyAlias(
+                                    context as Activity,
+                                    { alias ->
+                                        Log.d("ServerKonfig", "Zertifikatsalias: $alias")
+                                        aliasSelected.value = true
+                                        viewModel.setCertAlias(alias)
+
+                                    },
+                                    null, null, null, -1, null)
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(Icons.Default.Upload, contentDescription = "Zertifikat hochladen")
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Client-Zertifikat hochladen")
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        Button(
+                            onClick = {
+                                viewModel.saveServerConfig(context, serverUrl, certUri, password){
+                                        result ->
+                                    if(result)
+                                    {
+                                        onFinished()
+                                    }
                                 }
-                            }
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Speichern")
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Speichern")
+                        }
                     }
+
+                    Text(
+                        text = "Version: v.3",
+                        style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp),
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
                 }
             }
         }
