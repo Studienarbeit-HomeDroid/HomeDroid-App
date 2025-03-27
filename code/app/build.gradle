@@ -32,13 +32,13 @@ plugins {
 
 android {
     // Namespace for the application package
-    namespace 'com.homedroid.app'
+    namespace 'com.homedroidv2.app'
     // Setting the SDK version to compile against
     compileSdk 35
 
     defaultConfig {
         // Application ID that uniquely identifies the app
-        applicationId "com.homedroid.app"
+        applicationId "com.homedroidv2.app"
         // Minimum SDK version required to run the app
         minSdk 24
         // Target SDK version the app is optimized for
@@ -165,7 +165,7 @@ dependencies {
 
     implementation "com.airbnb.android:lottie-compose:6.0.0"
 
-    implementation 'com.google.android.gms:play-services-analytics:17.0.0'
+    implementation 'com.google.android.gms:play-services-analytics:18.1.1'
 
 
     // Firebase dependencies
