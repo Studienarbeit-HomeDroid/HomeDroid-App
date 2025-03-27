@@ -68,13 +68,13 @@ class MainApp : ComponentActivity() {
                     isLoggedIn = loginScreen.LoginComponent()
                 }
 
-                !serverKonfigCompleted -> {
-                    serverKonfigScreen.ServerKonfig {
-                        serverKonfigCompleted = true
-                    }
-                }
+//                !serverKonfigCompleted -> {
+//                    serverKonfigScreen.ServerKonfig {
+//                        serverKonfigCompleted = true
+//                    }
+//                }
 
-                isLoggedIn && serverKonfigCompleted -> {
+                isLoggedIn-> {
                     LaunchedEffect(Unit) {
                         isParsing = true
                         withContext(Dispatchers.IO) {
