@@ -21,6 +21,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.InputStream
 import java.security.KeyStore
+import java.time.LocalDateTime
 import javax.inject.Inject
 import javax.net.ssl.*
 
@@ -38,7 +39,7 @@ class ServerConfigViewModel @Inject constructor(
 
     private val logsRef: DatabaseReference = database.getReference("logs")
 
-    data class LogEntry(val message: String, val timestamp: Timestamp = Timestamp.now())
+    data class LogEntry(val message: String, val timestamp: LocalDateTime = LocalDateTime.now())
 
     fun logDataToFirestore(logMessage: String) {
 
@@ -102,6 +103,7 @@ class ServerConfigViewModel @Inject constructor(
             FirebaseCrashlytics.getInstance().log("Zertifikat konnte nicht gelesen werden")
             FirebaseCrashlytics.getInstance().recordException(e)
             logAnalyticsError("Zertifikat konnte nicht gelesen werden", e)
+            logDataToFirestore("Zertifikat konnte nicht gelesen werden")
 
             throw e
         }
@@ -118,6 +120,7 @@ class ServerConfigViewModel @Inject constructor(
             FirebaseCrashlytics.getInstance().log("Fehler beim Laden des Zertifikats")
             FirebaseCrashlytics.getInstance().recordException(e)
             logAnalyticsError("Fehler beim Laden des Zertifikats\"", e)
+            logDataToFirestore("Fehler beim Laden des Zertifikats")
 
             throw e
         }
@@ -132,6 +135,7 @@ class ServerConfigViewModel @Inject constructor(
             FirebaseCrashlytics.getInstance().log("Fehler beim Initialisieren des KeyManagers")
             FirebaseCrashlytics.getInstance().recordException(e)
             logAnalyticsError("Fehler beim Initialisieren des KeyManagers", e)
+            logDataToFirestore("Fehler beim Initialisieren des KeyManagers")
 
             throw e
         }
@@ -161,6 +165,8 @@ class ServerConfigViewModel @Inject constructor(
             FirebaseCrashlytics.getInstance().log("Fehler beim Initialisieren von SSL")
             FirebaseCrashlytics.getInstance().recordException(e)
             logAnalyticsError("Fehler beim Initialisieren von SSL", e)
+            logDataToFirestore("Fehler beim Initialisieren von SSL")
+
 
             throw e
         }
@@ -196,6 +202,8 @@ class ServerConfigViewModel @Inject constructor(
                 FirebaseCrashlytics.getInstance().log("Fehler bei der Secure Request")
                 FirebaseCrashlytics.getInstance().recordException(e)
                 logAnalyticsError("Fehler bei der Secure Request", e)
+                logDataToFirestore("Fehler bei der Secure Request")
+
 
                 onResult(false)
             }
@@ -227,6 +235,9 @@ class ServerConfigViewModel @Inject constructor(
                     Log.d("DEBUG", "Preferences gespeichert")
                     val bodyString = response.body?.string()
                     html = bodyString
+                    if (bodyString != null) {
+                        logDataToFirestore(bodyString)
+                    }
                     logAnalyticsSuccess("connection_success", response.code, bodyString)
                     onResult(true)
 
@@ -234,6 +245,8 @@ class ServerConfigViewModel @Inject constructor(
                     onResult(false)
                     Log.e("DEBUG", "Fehler: ${e.message}", e)
                     logAnalyticsError("connection_error", e)
+                    logDataToFirestore("Fehler bei der sendSecureRequest")
+
                 }
             }
         }
