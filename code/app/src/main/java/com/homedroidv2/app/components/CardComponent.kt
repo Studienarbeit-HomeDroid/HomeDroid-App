@@ -138,11 +138,25 @@ class CardComponent {
 
 
                 }
+                val trueFalseDevices = listOf("F", "S", "T", "V")
+
+                var deviceValue: String
+                if(device.messwertTyp in trueFalseDevices ) {
+                    if(device.value == "0") {
+                        deviceValue = "open"
+                    } else {
+                        deviceValue = "closed"
+                    }
+                } else {
+                    deviceValue = device.value
+                }
                 Text(
                     text = when (device.messwertTyp) {
                          "TLFH" -> "${device.value} °C"
                           "TEMP" -> "${device.value} °C"
-                        else -> device.value
+                        else -> {
+                            deviceValue
+                        }
                     },
                     style = MaterialTheme.typography.bodySmall.copy(
                         fontSize = 16.sp,
