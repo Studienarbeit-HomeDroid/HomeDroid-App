@@ -120,6 +120,20 @@ class ModalButtomSheetComponent {
                     }
                 }
 
+                if (group.devices.filter { it.messwertTyp == "T" || it.messwertTyp == "V" }.isNotEmpty()) {
+                    Text(
+                        text = "Türen",
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                    LazyColumn {
+                        items(group.devices.filter { it.messwertTyp == "T" || it.messwertTyp == "V"}) { device ->
+                            DeviceRow(group, device)
+                        }
+                    }
+                }
+
                 if (group.devices.filter { it.messwertTyp == "S" }.isNotEmpty()) {
                     Text(
                         text = "Status",
@@ -131,20 +145,25 @@ class ModalButtomSheetComponent {
                         ActionDevicesRow(group.id,group.devices.filter { it.messwertTyp  == "S" })
                 }
 
-                if (group.devices.filter { it.messwertTyp.isNullOrEmpty() }.isNotEmpty()) {
+
+
+                val knownTypes = listOf("Temp", "TLFH", "F", "R", "S", "T", "V")
+
+                val otherDevices = group.devices.filter { it.messwertTyp !in knownTypes || it.messwertTyp.isEmpty() }
+
+                if (otherDevices.isNotEmpty()) {
                     Text(
-                        text = "Geräte ohne Messwerttyp",
+                        text = "Andere Geräte",
                         textAlign = TextAlign.Center,
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(top = 8.dp)
                     )
                     LazyColumn {
-                        items(group.devices.filter { it.messwertTyp.isNullOrEmpty() }) { device ->
+                        items(otherDevices) { device ->
                             DeviceRow(group, device)
                         }
                     }
                 }
-
             }
         }
     }
@@ -210,6 +229,8 @@ class ModalButtomSheetComponent {
                     }
                 }
         ) {
+            val trueFalseDevices = listOf("F", "S", "T", "V")
+
             when (device.messwertTyp) {
                 "TEMP", "TLFH" -> {
                     RowContent(
@@ -220,9 +241,19 @@ class ModalButtomSheetComponent {
                     )
                 }
                 else -> {
+                    var deviceValue: String
+                    if(device.messwertTyp in trueFalseDevices ) {
+                        if(device.value == "0") {
+                            deviceValue = "open"
+                        } else {
+                            deviceValue = "closed"
+                        }
+                    } else {
+                        deviceValue = device.value
+                    }
                     RowContent(
-                        name = device.name,
-                        value = device.value,
+                        name = if(device.name != "") device.name else "empty name" ,
+                        value = deviceValue,
                         unit = "",
                         swipeOffset
                     )

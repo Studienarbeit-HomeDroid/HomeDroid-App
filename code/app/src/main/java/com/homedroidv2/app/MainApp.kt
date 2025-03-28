@@ -57,21 +57,29 @@ class MainApp : ComponentActivity() {
             val serverUrl = config["server_url"]
             val certUri = config["cert_uri"]
             val certPwd = config["cert_pwd"]
+            val alias = config["alias"]
+            Log.d("DEBUG MAIN", "SERVER URL: $serverUrl")
+            Log.d("DEBUG MAIN", "ALIAS: $alias")
 
-            // Initiale Verbindungsprüfung einmalig durchführen
+
             LaunchedEffect(Unit) {
-                if (!serverUrl.isNullOrEmpty() && !certUri.isNullOrEmpty() && !certPwd.isNullOrEmpty()) {
-                    viewModel.setConfig(serverUrl, Uri.parse(certUri), certPwd)
-                    viewModel.checkConnection(this@MainApp) { success ->
-                        if (success) {
-                            Log.d("Result", "Connection successful in Main")
-                            html = viewModel.html.orEmpty()
-                            serverKonfigCompleted = true
+                if (alias != null) {
+                    Log.d("DEBUG MAIN", "ALIAS 1: $alias")
+                    if (!serverUrl.isNullOrEmpty() && !alias.isNullOrEmpty()) {
+                        Log.d("DEBUG MAIN", "ALIAS 2: $alias")
+                        viewModel.checkConnection(this@MainApp, serverUrl, alias) { success ->
+                            if (success) {
+                                Log.d("Result", "Connection successful in Main")
+                                html = viewModel.html.orEmpty()
+                                serverKonfigCompleted = true
+                                viewModel.fetchAllDatas(this@MainApp)
+
+                            }
+                            initCheckDone = true
                         }
+                    } else {
                         initCheckDone = true
                     }
-                } else {
-                    initCheckDone = true
                 }
             }
 

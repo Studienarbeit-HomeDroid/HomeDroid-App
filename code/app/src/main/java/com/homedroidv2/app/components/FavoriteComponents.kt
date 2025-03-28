@@ -27,7 +27,7 @@ class FavoriteComponents{
     @Composable
     fun Favorite() {
         Text(
-            text = "Favorites",
+            text = "Favoriten",
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier
                 .padding(top = 13.dp)

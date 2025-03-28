@@ -259,7 +259,7 @@ class CardComponent {
                     verticalArrangement = Arrangement.Top
                 ) {
                     Text(
-                        text = device.name,
+                        text = if(device.name != "") device.name else "empty name" ,
                         style = MaterialTheme.typography.bodyMedium.copy(
                             fontWeight = FontWeight.Bold
                         ),

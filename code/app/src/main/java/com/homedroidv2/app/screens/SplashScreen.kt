@@ -17,7 +17,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.activity.ComponentActivity
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import com.homedroidv2.app.ui.theme.HomeDroidTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import com.homedroidv2.carappservice.R
@@ -41,85 +44,98 @@ class SplashScreen : ComponentActivity() {
             onSplashFinished()
         }
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.White),
-            contentAlignment = Alignment.Center
-        ) {
-
-            Column(
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Image(
-                    painter = painterResource(id = com.homedroidv2.app.R.drawable.full_logo),
-                    contentDescription = null,
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.fillMaxWidth(0.5f)
-                )
-
-                CircularProgressIndicator(
-                    modifier = Modifier
-                        .size(20.dp)
-                        .padding(top = 15.dp),
-                    color = MaterialTheme.colorScheme.tertiary,
-                    strokeWidth = 3.dp
-                )
-
-                Spacer(modifier = Modifier.height(90.dp))
-
-                if(isParsing)
-                {
-                    Text(
-                        text = "Website is Parsing...",
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            fontSize = 16.sp
-                        ),
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center
-                    )
-                }
-
-            }
-
-            Box(
+        HomeDroidTheme {
+            Surface(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.BottomCenter)
-                    .padding(16.dp)
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    .fillMaxSize()
+                    .padding(WindowInsets.systemBars.asPaddingValues()),
+                color = MaterialTheme.colorScheme.primary
+            ){
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    contentAlignment = Alignment.Center
                 ) {
-                    androidx.compose.material3.Text(
-                        text = "Studienarbeit",
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            fontSize = 12.sp
-                        ),
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center
-                    )
 
-                    androidx.compose.material3.Text(
-                        text = "TINF22B2",
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            fontSize = 12.sp
-                        ),
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center
-                    )
-                    androidx.compose.material3.Text(
-                        text = "Version: v.2",
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            fontSize = 12.sp
-                        ),
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center
-                    )
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        val isDark = isSystemInDarkTheme()
+                        val imageRes = if (!isDark) com.homedroidv2.app.R.drawable.full_logo else com.homedroidv2.app.R.drawable.full_logo_white
+
+                        Image(
+                            painter = painterResource(id = imageRes),
+                            contentDescription = null,
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.fillMaxWidth(0.5f)
+                        )
+
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .size(20.dp)
+                                .padding(top = 15.dp),
+                            color = MaterialTheme.colorScheme.tertiary,
+                            strokeWidth = 3.dp
+                        )
+
+                        Spacer(modifier = Modifier.height(90.dp))
+
+                        if(isParsing)
+                        {
+                            Text(
+                                text = "Website is Parsing...",
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    fontSize = 16.sp
+                                ),
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.BottomCenter)
+                            .padding(16.dp)
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            androidx.compose.material3.Text(
+                                text = "Studienarbeit",
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    fontSize = 12.sp
+                                ),
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Center
+                            )
+
+                            androidx.compose.material3.Text(
+                                text = "TINF22B2",
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    fontSize = 12.sp
+                                ),
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Center
+                            )
+                            androidx.compose.material3.Text(
+                                text = "Version: v.2",
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    fontSize = 12.sp
+                                ),
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
                 }
             }
         }
+
+
     }
 }

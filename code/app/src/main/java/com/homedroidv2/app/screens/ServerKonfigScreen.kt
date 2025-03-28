@@ -29,6 +29,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.homedroidv2.app.ui.theme.HomeDroidTheme
 import com.homedroidv2.app.viewmodel.ServerConfigViewModel
 import android.util.Log
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 
 class ServerKonfigScreen : ComponentActivity() {
 
@@ -79,6 +83,31 @@ class ServerKonfigScreen : ComponentActivity() {
                     .fillMaxSize(),
                 color = MaterialTheme.colorScheme.background
             ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+
+                    Text(
+                        text = "Willkommen bei",
+                        style = MaterialTheme.typography.headlineLarge,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.padding(top = 80.dp)
+                    )
+
+                    val isDark = isSystemInDarkTheme()
+                    val imageRes =
+                        if (!isDark) com.homedroidv2.app.R.drawable.full_logo else com.homedroidv2.app.R.drawable.full_logo_white
+
+                    Image(
+                        painter = painterResource(id = imageRes),
+                        contentDescription = null,
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier.fillMaxWidth(0.5f)
+                    )
+                }
 
                 Column(
                     modifier = Modifier
@@ -91,9 +120,11 @@ class ServerKonfigScreen : ComponentActivity() {
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
+
+
                         Text(
                             text = "Server Konfiguration",
-                            style = MaterialTheme.typography.headlineSmall
+                            style = MaterialTheme.typography.bodyLarge
                         )
 
                         Spacer(modifier = Modifier.height(20.dp))

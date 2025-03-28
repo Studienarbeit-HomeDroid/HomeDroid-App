@@ -63,7 +63,7 @@ class GroupComponent {
             ) {
                 groupsFlowList.value.forEach { group ->
                     item {
-                        if (group.name != "Strom")
+                        if (group.name != "Strom" && group.name != "RAUM" )
                         {
                             Group(group)
                         }

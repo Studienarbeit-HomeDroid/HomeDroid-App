@@ -17,23 +17,34 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
+import com.homedroidv2.data.model.ParsedDevices
+import com.homedroidv2.data.model.ParsedGroup
 import com.homedroidv2.data.repositories.DashboardRepository
 import com.homedroidv2.data.repositories.GroupRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.InputStream
 import java.net.Socket
 import java.net.URL
+import java.net.URLEncoder
 import java.security.KeyStore
 import java.security.PrivateKey
 import java.time.LocalDateTime
 import javax.inject.Inject
 import javax.net.ssl.*
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 
 @HiltViewModel
 
@@ -48,9 +59,11 @@ class ServerConfigViewModel @Inject constructor(
     var password: String? = null
     private var connected = false
     var html: String? = null
+    var requestCount = 0
+    var deviceCount = 0
 
     private val _certAlias = mutableStateOf<String?>(null)
-    val certAlias: State<String?> = _certAlias
+    var certAlias: State<String?> = _certAlias
 
     fun setCertAlias(alias: String?) {
         _certAlias.value = alias
@@ -78,14 +91,11 @@ class ServerConfigViewModel @Inject constructor(
         serverUrl = url
         certUri = uri
         this.password = password
-
         Log.d("ServerConfig", "Gespeicherte URL: $serverUrl")
         Log.d("ServerConfig", "Gespeichertes Zertifikat: $certUri")
-
         initAnalytics(context)
 
-
-        sendSecureRequest(context) { result ->
+        sendSecureRequest( context, true) { result ->
             if (result)
             {
                 onResult(true)
@@ -97,7 +107,28 @@ class ServerConfigViewModel @Inject constructor(
         }
     }
 
-    fun setConfig( url: String, uri: Uri?, pwd: String) {
+    fun checkConnection(context: Context, url: String, alias: String?, onResult: (Boolean) -> Unit) {
+        Log.d("DEBUG MAIN", "ALIAS 3: $alias")
+
+        serverUrl = url
+        setCertAlias(alias)
+        Log.d("ServerConfig", "Gespeicherte URL: $serverUrl")
+        Log.d("ServerConfig", "Gespeichertes Zertifikat: $alias")
+        initAnalytics(context)
+
+        sendSecureRequest(context, false) { result ->
+            if (result)
+            {
+                onResult(true)
+            }
+            else
+            {
+                onResult(false)
+            }
+        }
+    }
+
+    fun setConfig( url: String, uri: Uri?, pwd: String, alias: State<String?> ) {
         Log.i("Cert", "set Config")
         Log.i("Cert", "Server URL: $url")
         Log.i("Cert", "Cert URI: $uri")
@@ -105,6 +136,7 @@ class ServerConfigViewModel @Inject constructor(
         serverUrl = url
         certUri = uri
         password = pwd
+        certAlias = alias
     }
 
     private fun getCertificateStream(context: Context): InputStream? {
@@ -331,40 +363,40 @@ class ServerConfigViewModel @Inject constructor(
 //            .build()
 //    }
 
-    fun checkConnection(context: Context, onResult:  (Boolean) -> Unit) {
-        initAnalytics(context)
-        Log.d("Result", "Checkconnection")
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val client = createSecureClient(context)
-                val url = serverUrl ?: return@launch onResult(false)
+//    fun checkConnection(context: Context, onResult:  (Boolean) -> Unit) {
+//        initAnalytics(context)
+//        Log.d("Result", "Checkconnection")
+//        viewModelScope.launch(Dispatchers.IO) {
+//            try {
+//                val client = createSecureClient(context)
+//                val url = serverUrl ?: return@launch onResult(false)
+//
+//                val request = Request.Builder().url(url).build()
+//                val response = client.newCall(request).execute()
+//
+//                Log.d("HTTP", "Code: ${response.code}")
+//                Log.d("HTTP", "After")
+//                val bodyString = response.body?.string()
+//                html = bodyString
+//                if (bodyString != null) {
+//                    logDataToFirestore(bodyString)
+//                }
+//                Log.d("HTTP", "HTML: $html")
+//                onResult(true)
+//            } catch (e: Exception) {
+//                Log.e("HTTP", "Fehler: ${e.message}")
+//                FirebaseCrashlytics.getInstance().log("Fehler bei der Secure Request")
+//                FirebaseCrashlytics.getInstance().recordException(e)
+//                logAnalyticsError("Fehler bei der Secure Request", e)
+//                logDataToFirestore(" URL: $serverUrl Fehler bei der Secure Request: $e")
+//
+//
+//                onResult(false)
+//            }
+//        }
+//    }
 
-                val request = Request.Builder().url(url).build()
-                val response = client.newCall(request).execute()
-
-                Log.d("HTTP", "Code: ${response.code}")
-                Log.d("HTTP", "After")
-                val bodyString = response.body?.string()
-                html = bodyString
-                if (bodyString != null) {
-                    logDataToFirestore(bodyString)
-                }
-                Log.d("HTTP", "HTML: $html")
-                onResult(true)
-            } catch (e: Exception) {
-                Log.e("HTTP", "Fehler: ${e.message}")
-                FirebaseCrashlytics.getInstance().log("Fehler bei der Secure Request")
-                FirebaseCrashlytics.getInstance().recordException(e)
-                logAnalyticsError("Fehler bei der Secure Request", e)
-                logDataToFirestore(" URL: $serverUrl Fehler bei der Secure Request: $e")
-
-
-                onResult(false)
-            }
-        }
-    }
-
-        fun sendSecureRequest(context: Context, onResult: (Boolean) -> Unit) {
+        fun sendSecureRequest(context: Context, sendToast: Boolean, onResult: (Boolean) -> Unit) {
             viewModelScope.launch(Dispatchers.IO) {
                 try {
                     val client = createSecureClient(context)
@@ -375,7 +407,8 @@ class ServerConfigViewModel @Inject constructor(
 
                     Log.d("DEBUG", "Code: ${response.code}")
                     withContext(Dispatchers.Main) {
-                        Toast.makeText(context, "Anfrage war erfolgreich", Toast.LENGTH_LONG).show()
+                        if (sendToast) Toast.makeText(context, "Anfrage war erfolgreich", Toast.LENGTH_LONG).show()
+
                     }
 
                     val prefs = context.getSharedPreferences("cert_prefs", Context.MODE_PRIVATE)
@@ -385,6 +418,7 @@ class ServerConfigViewModel @Inject constructor(
                         .putString("server_url", url)
                         .putString("cert_uri", certUri?.toString())
                         .putString("cert_pwd", password)
+                        .putString("alias", certAlias.value)
                         .apply()
                     Log.d("DEBUG", "Preferences gespeichert")
                     val bodyString = response.body?.string()
@@ -398,7 +432,7 @@ class ServerConfigViewModel @Inject constructor(
                 } catch (e: Exception) {
                     onResult(false)
                     withContext(Dispatchers.Main) {
-                        Toast.makeText(context, "Ein Fehler ist aufgetreten: ${e.message}", Toast.LENGTH_LONG).show()
+                        if (sendToast)  Toast.makeText(context, "Ein Fehler ist aufgetreten: ${e.message}", Toast.LENGTH_LONG).show()
                     }
                     Log.e("DEBUG", "Fehler: ${e.message}", e)
                     logAnalyticsError("connection_error", e)
@@ -413,7 +447,8 @@ class ServerConfigViewModel @Inject constructor(
             return mapOf(
                 "server_url" to prefs.getString("server_url", "").orEmpty(),
                 "cert_uri" to prefs.getString("cert_uri", "").orEmpty(),
-                "cert_pwd" to prefs.getString("cert_pwd", "").orEmpty()
+                "cert_pwd" to prefs.getString("cert_pwd", "").orEmpty(),
+                "alias" to prefs.getString("alias", "").orEmpty()
             )
         }
 
@@ -442,10 +477,13 @@ class ServerConfigViewModel @Inject constructor(
 
     public fun fetchAllDatas(context: Context)
     {
+        requestCount = 0
+        deviceCount = 0
         viewModelScope.launch {
             try {
                 fetchHeizungData(context)
                 fetchSolarData(context)
+                fetchDeviceDatas(context)
             } catch (e: Exception)
             {
                 logDataToFirestore("URL: $serverUrl Fehler bei fetchAllDatas : $e")
@@ -453,10 +491,35 @@ class ServerConfigViewModel @Inject constructor(
         }
     }
 
+    val openWindows = mutableListOf<String>()
+    val openDoors = mutableListOf<String>()
+    val unlockedDoors = mutableListOf<String>()
+
+    fun updateOpenWindows() {
+        viewModelScope.launch {
+            dashboardRepository.updateWindowDatas(openWindows.size.toString())
+
+        }
+    }
+
+    fun updateOpenDoors() {
+        viewModelScope.launch {
+            dashboardRepository.updateOpenDoorDatas(openDoors.size.toString())
+
+        }
+    }
+
+    fun updateClosedDoors() {
+        viewModelScope.launch {
+            dashboardRepository.updateClosedDoorDatas(unlockedDoors.size.toString())
+
+        }
+    }
+
     fun fetchSolarData(context: Context){
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val url = "${serverUrl}/sh/solar/opendtu.php"
+                val url = "${serverUrl}solar/opendtu.php"
                 val client = createSecureClient(context)
                 Log.d("Solar", "URL: $url")
                 val request = Request.Builder().url(url).build()
@@ -491,7 +554,7 @@ class ServerConfigViewModel @Inject constructor(
     fun fetchHeizungData(context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val url = "${serverUrl}/sh/visu/heizung/ajax/read_table_vicare_latest.php"
+                val url = "${serverUrl}visu/heizung/ajax/read_table_vicare_latest.php"
                 Log.d("Heizung", "URL: $url")
                 val client = createSecureClient(context)
                 Log.d("Heizung", "Client: $client")
@@ -509,11 +572,11 @@ class ServerConfigViewModel @Inject constructor(
                 val brennerStunden = data.getString("Brenner_Betriebsstunden")
                 val brennerStarts = data.getString("Brenner_Starts")
 
-                dashboardRepository.updateHeizungValue("1", tempAussen)
-                dashboardRepository.updateHeizungValue("2", modus)
-                dashboardRepository.updateHeizungValue("3", brennerStunden)
-                dashboardRepository.updateHeizungValue("4", brennerStarts)
-                dashboardRepository.updateHeizungValue("5", timestamp)
+                dashboardRepository.updateHeizungValue("0", tempAussen)
+                dashboardRepository.updateHeizungValue("1", modus)
+                dashboardRepository.updateHeizungValue("2", brennerStunden)
+                dashboardRepository.updateHeizungValue("3", brennerStarts)
+                dashboardRepository.updateHeizungValue("4", timestamp)
 
                 println("Außentemperatur: $tempAussen °C")
                 println("Zeitstempel: $timestamp")
@@ -525,47 +588,247 @@ class ServerConfigViewModel @Inject constructor(
             {
                 Log.e("Heizung", "Fehler beim Abrufen der Solardaten: ${e.message}", e)
                 logDataToFirestore("URL: $serverUrl/sh/solar/opendtu.php Fehler bei fetchAllDatas : $e")
+                dashboardRepository.updateHeizungValue("0", "err")
                 dashboardRepository.updateHeizungValue("1", "err")
                 dashboardRepository.updateHeizungValue("2", "err")
                 dashboardRepository.updateHeizungValue("3", "err")
                 dashboardRepository.updateHeizungValue("4", "err")
-                dashboardRepository.updateHeizungValue("5", "err")
             }
         }
     }
 
-
-
-
-
-    private fun  getDeviceDatas(context: Context, onResult: (Boolean) -> Unit)
-    {
+    fun fetchDeviceDatas(context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val client = createSecureClient(context)
                 val url = serverUrl ?: return@launch
 
-                val request = Request.Builder().url(url).build()
-                val response = client.newCall(request).execute()
+                groupRepository.getParsedGroupFlow().collect { groupList ->
+                    Log.d("Firebase Group", "Group exists: $groupList")
 
-
-                onResult(true)
-
+                    groupList.forEach { group ->
+                        processAllDevicesWithLimit(group, group.devices, client, url)
+                    }
+                }
             } catch (e: Exception) {
-                onResult(false)
-
                 logDataToFirestore("URL: $serverUrl Fehler bei der sendSecureRequest : $e")
 
             }
         }
+    }
 
+    fun processDeviceListEntry(group: ParsedGroup, device: ParsedDevices, client: OkHttpClient, url: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            when (device.deviceType) {
+                "D" -> processDelockDevice( device, client, url)
+                "F" -> processFritzDevice(device, client, url)
+                "K" -> processKNXDevice(group, device, client, url)
+                else -> Log.e("PARSER", "Invalid device type ${device.deviceType}")
+            }
+        }
     }
 
 
+    suspend fun processAllDevicesWithLimit(
+        group: ParsedGroup,
+        devices: List<ParsedDevices>,
+        client: OkHttpClient,
+        url: String
+    ) = coroutineScope {
+        val semaphore = Semaphore(5)
+
+        devices.forEach { device ->
+            Log.d("Firebase Device TO FETCH", "Device exists: ${device.name}")
+            launch {
+                semaphore.withPermit {
+                    Log.d("Firebase Device TO FETCH SEMAPHORE", "Device exists: ${device.name}")
+                    processDeviceListEntry(group, device, client, url)
+                    delay(100)
+                }
+            }
+        }
+    }
 
 
+    suspend fun processKNXDevice(group: ParsedGroup, devices: ParsedDevices, client: OkHttpClient, url: String) {
+        if (devices.adresse.startsWith("x") || devices.adresse.isEmpty()) {
+            Log.d("KNX", "Adresse ignoriert: ${devices.adresse}")
+            return
+        }
 
 
+        Log.d("ANZAHL DEVICES", "Anfrage Nr. ${++deviceCount}")
 
 
+        Log.d("KNX", "-------------------------")
+        Log.d("KNX", "➤ Gerät: ${devices.name} [${devices.htmlId}] Typ: ${devices.messwertTyp}")
+        Log.d("KNX", "-------------------------")
+
+        val id = devices.htmlId
+        val messwertTyp = devices.messwertTyp
+        val adresse = devices.adresse
+        val dpt = devices.parameter1
+        val name = devices.name
+        val bfname = devices.bfname
+        val maxAge = devices.maxAge
+
+        val urlPath = if (messwertTyp == "TLFH") {
+            val parts = adresse.split(";")
+            val ga1 = URLEncoder.encode(parts.getOrNull(0) ?: return, "UTF-8")
+            val ga2 = URLEncoder.encode(parts.getOrNull(1) ?: return, "UTF-8")
+            val ga3 = parts.getOrNull(2)?.let { URLEncoder.encode(it, "UTF-8") }
+
+            val encodedId = URLEncoder.encode(id, "UTF-8")
+
+            buildString {
+                append("knx/ajax/knx_read_temp_lfh.php?ga1=$ga1&ga2=$ga2&ID=$encodedId")
+                if (!ga3.isNullOrEmpty()) append("&ga3=$ga3")
+                if (maxAge.isNotEmpty() && maxAge != "0") append("&age=${URLEncoder.encode(maxAge, "UTF-8")}")
+            }
+        } else {
+            val encodedAdresse = URLEncoder.encode(adresse, "UTF-8")
+            val encodedDpt = URLEncoder.encode(dpt, "UTF-8")
+            val encodedId = URLEncoder.encode(id, "UTF-8")
+            val encodedName = URLEncoder.encode(name, "UTF-8")
+            val encodedBfname = URLEncoder.encode(bfname, "UTF-8")
+
+            buildString {
+                append("knx/ajax/knx_read_ga.php?ga=$encodedAdresse&DPT=$encodedDpt&Type=$messwertTyp&ID=$encodedId&Name=$encodedName")
+                if (bfname.isNotEmpty()) append("&bfname=$encodedBfname")
+                if (maxAge.isNotEmpty() && maxAge != "0") append("&age=${URLEncoder.encode(maxAge, "UTF-8")}")
+            }
+        }
+
+        val fullUrl = "$url$urlPath"
+        Log.d("KNX", "Request-URL: $fullUrl")
+
+        val request = Request.Builder().url(fullUrl).build()
+        Log.d("Firebase Device TO FETCH SEMAPHORE REQUEST", " Device: ${devices.name} Request: $request")
+
+        try {
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) {
+                    Log.e("KNX", "Fehlerhafte Antwort (${response.code}) bei $fullUrl")
+                    return
+                }
+                if(response.isSuccessful)
+                {
+                    Log.d("ANZAHL RESPONSES", "Anfrage Nr. ${++requestCount}")
+                }
+
+                val json = response.body?.string()
+                Log.d("KNX JSON ANTWORT", " Gerät: ${devices.name} Antwort JSON: $json")
+
+                if (messwertTyp == "TLFH") {
+                    if (!json.isNullOrEmpty()) {
+                        try {
+                            val jsonArray = JSONArray(json)
+                            val value = jsonArray.optString(1)
+                            val ids = id.split(";")
+                            for (htmlId in ids) {
+                                Log.d("KNX", "Setze $htmlId = $value")
+                                groupRepository.updateDeviceValue(group.id, devices, value)
+                            }
+                        } catch (e: Exception) {
+                            Log.e("KNX", "JSON Parse Fehler (TLFH): ${e.message}")
+                        }
+                    }
+                } else {
+                    if (!json.isNullOrEmpty()) {
+                        try {
+                            val jsonArray = JSONArray(json)
+                            val value0 = jsonArray.optString(0)
+                            val value1 = jsonArray.optString(1)
+                            val ids = id.split(";")
+                                val type = messwertTyp
+                                val nameParam = name
+                                Log.d("RESPONSES", "Verarbeite ${devices.name} $type: $nameParam mit Wert $value0/$value1")
+
+                                when (type) {
+                                    "R" -> {
+                                        groupRepository.updateDeviceValue(group.id, devices, value0)
+                                        Log.d("KNX", "Rollladen [$nameParam] → $value0")
+                                    }
+                                    "F" -> {
+                                        if (value0 == "0") {
+                                            if (!openWindows.contains(nameParam)) {
+                                                Log.d("KNX", "Fenster [$nameParam] offen → hinzufügen")
+                                                openWindows.add(nameParam)
+                                                groupRepository.updateDeviceValue(group.id, devices, "0")
+                                            }
+                                        } else {
+                                                Log.e("WINDOWS", "Fenster [$nameParam] geschlossen → entfernen")
+                                                Log.e("WINDOWS", "IN")
+                                                openWindows.remove(nameParam)
+                                                Log.e("WINDOWS", "${devices.name}")
+                                                groupRepository.updateDeviceValue(group.id, devices, "1")
+                                        }
+                                        dashboardRepository.updateWindowDatas(groupRepository.getNumberOfOpenWindows().toString())
+                                    }
+                                    "T" -> {
+                                        if (value0 == "0") {
+                                            if (!openDoors.contains(nameParam)) {
+                                                Log.d("KNX", "Tür [$nameParam] offen → hinzufügen")
+                                                openDoors.add(nameParam)
+                                                groupRepository.updateDeviceValue(group.id, devices, "0")
+                                                updateOpenDoors()
+                                            }
+                                        } else {
+
+                                                Log.d("KNX", "Tür [$nameParam] geschlossen → entfernen")
+                                                openDoors.remove(nameParam)
+                                                groupRepository.updateDeviceValue(group.id, devices, "1")
+                                                updateOpenDoors()
+
+                                        }
+                                        dashboardRepository.updateWindowDatas(groupRepository.getNumberOfOpenDoors().toString())
+
+                                    }
+                                    "V", "PR" -> {
+                                        if (value0 == "0") {
+                                            if (!unlockedDoors.contains(nameParam)) {
+                                                Log.d("KNX", "Verriegelung [$nameParam] offen → hinzufügen")
+                                                unlockedDoors.add(nameParam)
+                                                groupRepository.updateDeviceValue(group.id, devices, "0")
+                                                updateClosedDoors()
+                                            }
+                                        } else {
+                                                Log.d("KNX", "Verriegelung [$nameParam] geschlossen → entfernen")
+                                                unlockedDoors.remove(nameParam)
+                                                groupRepository.updateDeviceValue(group.id, devices, "1")
+                                                updateClosedDoors()
+
+                                        }
+                                        dashboardRepository.updateWindowDatas(groupRepository.getNumberOfUnlockedDoors().toString())
+
+                                    }
+                                    else -> {
+                                        groupRepository.updateDeviceValue(group.id, devices, value0)
+                                        Log.d("KNX", "Standardwert [$nameParam] → $value1")
+                                    }
+                                }
+                        } catch (e: Exception) {
+                            Log.e("KNX", "JSON Parse Fehler (Normal): ${e.message}")
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("KNX", "Request-Fehler: ${e.message}")
+        }
+
+        Log.d("KNX", "Fertig verarbeitet: ${devices.name} (${devices.htmlId})")
+    }
+
+    fun processFritzDevice(devices: ParsedDevices, client: OkHttpClient, url: String)
+    {
+        Log.d("DEBUG FETCH", "FRITZ Device $devices")
+
+    }
+
+    fun processDelockDevice(devices: ParsedDevices, client: OkHttpClient, url: String)
+    {
+        Log.d("DEBUG FETCH", "DELOCK  Device $devices")
+
+    }
 }

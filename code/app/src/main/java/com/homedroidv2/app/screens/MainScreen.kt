@@ -8,9 +8,11 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.verticalScroll
@@ -84,6 +86,9 @@ class MainScreen : ComponentActivity() {
                             carConnectionType,
                             htmlIsLoaded
                         )
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
                         dashboardComponent.Dashboard()
                         favoriteComponent.Favorite()
                     }
