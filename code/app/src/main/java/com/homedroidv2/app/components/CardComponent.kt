@@ -58,6 +58,7 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.homedroidv2.app.R
 import com.homedroidv2.app.viewmodel.FavoriteViewModel
 import com.homedroidv2.app.viewmodel.GroupViewModel
+import com.homedroidv2.app.viewmodel.ServerConfigViewModel
 import com.homedroidv2.data.model.ParsedDevices
 import com.homedroidv2.data.model.ParsedGroup
 
@@ -222,7 +223,7 @@ class CardComponent {
     @RequiresApi(Build.VERSION_CODES.Q)
     @OptIn(ExperimentalFoundationApi::class)
     @Composable
-    fun ActionDeviceCard(groupId: Int?, device: ParsedDevices, viewModel: FavoriteViewModel = viewModel(), groupViewModel: GroupViewModel = viewModel()) {
+    fun ActionDeviceCard(groupId: Int?, device: ParsedDevices, viewModel: FavoriteViewModel = viewModel(), groupViewModel: GroupViewModel = viewModel(), serverConfigViewModel: ServerConfigViewModel = viewModel()) {
         val context = LocalContext.current
         val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         var showDialog by remember { mutableStateOf(false) }

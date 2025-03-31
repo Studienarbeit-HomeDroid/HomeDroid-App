@@ -225,7 +225,7 @@ class ServerKonfigScreen : ComponentActivity() {
                     }
 
                     Text(
-                        text = "Version: v.3",
+                        text = "Version: v.4",
                         style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp),
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center
