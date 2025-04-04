@@ -1,5 +1,6 @@
 package com.homedroidv2.app.viewmodel
 
+import android.app.ProgressDialog
 import android.content.Context
 import android.net.Uri
 import android.os.Build
@@ -23,6 +24,8 @@ import com.homedroidv2.data.repositories.DashboardRepository
 import com.homedroidv2.data.repositories.GroupRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -484,9 +487,22 @@ class ServerConfigViewModel @Inject constructor(
         deviceCount = 0
         viewModelScope.launch {
             try {
+                val progressDialog = ProgressDialog(context).apply {
+                    setTitle("Lade Gerätedaten")
+                    setMessage("Bitte warten...")
+                    setCancelable(false) // Verhindert Abbrechen durch Nutzer
+                    show() // Dialog anzeigen
+                }
+                fetchDeviceDatas(context)
+
+                progressDialog.dismiss()
+
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Gerätedaten geladen!", Toast.LENGTH_SHORT).show()
+                }
                 fetchHeizungData(context)
                 fetchSolarData(context)
-                fetchDeviceDatas(context)
+                fetchStromDatas()
             } catch (e: Exception)
             {
                 logDataToFirestore("URL: $serverUrl Fehler bei fetchAllDatas : $e")
@@ -550,6 +566,7 @@ class ServerConfigViewModel @Inject constructor(
     }
 
     fun fetchHeizungData(context: Context) {
+        Log.d("TESTFLOW", "Start fetchHeizungData")
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val url = "${serverUrl}visu/heizung/ajax/read_table_vicare_latest"
@@ -595,11 +612,45 @@ class ServerConfigViewModel @Inject constructor(
         }
     }
 
-    fun fetchDeviceDatas(context: Context) {
+    fun fetchStromDatas()
+    {
         viewModelScope.launch(Dispatchers.IO) {
+            var strombezug: String = ""
+            var stromlieferung: String = ""
+            var zaehlerstand: String = ""
+            var zaehlerstandLi: String = ""
+            val stromdevices = groupRepository.getStromDevices()
+            stromdevices.forEach {
+                device -> Log.d("StromDevices", "Stromdevices: ${device.name}.")
+                if(device.name == "Strom Leistung")
+                {
+                    strombezug = device.value
+                }
+                if(device.name == "Strom Leistung Lieferun")
+                {
+                    stromlieferung = device.value
+                }
+                if(device.name == "Stromzählerstand kWh")
+                {
+                    zaehlerstand = device.value
+                }
+                if(device.name == "Stromzählerstand kWh Li")
+                {
+                    zaehlerstandLi = device.value
+                }
+                dashboardRepository.updateStromDatas(strombezug, stromlieferung)
+                dashboardRepository.updateSZaehlerDatas(zaehlerstand, zaehlerstandLi)
+
+            }
+        }
+    }
+
+    suspend fun fetchDeviceDatas(context: Context) {
             try {
+                Log.d("TESTFLOW", "Start fetchDeviceDatas")
+                // ...
                 val client = createSecureClient(context)
-                val url = serverUrl ?: return@launch
+                val url = serverUrl ?: return
 
                 val groupList = groupRepository.getParsedGroupFlow().first()
                 Log.d("Firebase Group", "Group exists: $groupList")
@@ -612,6 +663,7 @@ class ServerConfigViewModel @Inject constructor(
                 dashboardRepository.updateWindowDatas(groupRepository.getNumberOfOpenWindows().toString())
                 dashboardRepository.updateOpenDoorDatas(groupRepository.getNumberOfOpenDoors().toString())
                 dashboardRepository.updateClosedDoorDatas(groupRepository.getNumberOfUnlockedDoors().toString())
+                Log.d("TESTFLOW", "End fetchDeviceDatas")
 
 
 
@@ -619,18 +671,17 @@ class ServerConfigViewModel @Inject constructor(
                 logDataToFirestore("URL: $serverUrl Fehler bei der sendSecureRequest : $e")
 
             }
-        }
+
     }
 
-    fun processDeviceListEntry(group: ParsedGroup, device: ParsedDevices, client: OkHttpClient, url: String) {
-        viewModelScope.launch(Dispatchers.IO) {
+    suspend fun processDeviceListEntry(group: ParsedGroup, device: ParsedDevices, client: OkHttpClient, url: String) {
             when (device.deviceType) {
                   "D" -> processDelockDevice(group,  device, client, url)
                 "F" -> processFritzDevice(group, device, client, url)
                 "K" -> processKNXDevice(group, device, client, url)
                 else -> Log.e("PARSER", "Invalid device type ${device.deviceType}")
             }
-        }
+
     }
 
 
@@ -642,17 +693,17 @@ class ServerConfigViewModel @Inject constructor(
     ) = coroutineScope {
         val semaphore = Semaphore(5)
 
-        devices.forEach { device ->
-            Log.d("Firebase Device TO FETCH", "Device exists: ${device.name}")
-            launch {
+        val jobs = devices.map { device ->
+            async {
                 semaphore.withPermit {
-                    Log.d("Firebase Device TO FETCH SEMAPHORE", "Device exists: ${device.name}")
+                    Log.d("DeviceProcessing", "Fetching ${device.name}")
                     processDeviceListEntry(group, device, client, url)
                     delay(100)
                 }
             }
         }
 
+        jobs.awaitAll()
     }
 
 
@@ -687,7 +738,7 @@ class ServerConfigViewModel @Inject constructor(
             val encodedId = URLEncoder.encode(id, "UTF-8")
 
             buildString {
-                append("knx/ajax/knx_read_temp_lfh?ga1=$ga1&ga2=$ga2&ID=$encodedId")
+                append("knx/ajax/knx_read_temp_lfh.php?ga1=$ga1&ga2=$ga2&ID=$encodedId")
                 if (!ga3.isNullOrEmpty()) append("&ga3=$ga3")
                 if (maxAge.isNotEmpty() && maxAge != "0") append("&age=${URLEncoder.encode(maxAge, "UTF-8")}")
             }
@@ -699,7 +750,7 @@ class ServerConfigViewModel @Inject constructor(
             val encodedBfname = URLEncoder.encode(bfname, "UTF-8")
 
             buildString {
-                append("knx/ajax/knx_read_ga?ga=$encodedAdresse&DPT=$encodedDpt&Type=$messwertTyp&ID=$encodedId&Name=$encodedName")
+                append("knx/ajax/knx_read_ga.php?ga=$encodedAdresse&DPT=$encodedDpt&Type=$messwertTyp&ID=$encodedId&Name=$encodedName")
                 if (bfname.isNotEmpty()) append("&bfname=$encodedBfname")
                 if (maxAge.isNotEmpty() && maxAge != "0") append("&age=${URLEncoder.encode(maxAge, "UTF-8")}")
             }
@@ -802,7 +853,7 @@ class ServerConfigViewModel @Inject constructor(
                                     }
                                     else -> {
                                         groupRepository.updateDeviceValue(group.id, devices, value0)
-                                        Log.d("KNX", "Standardwert [$nameParam] → $value1")
+                                        Log.d("Alle anderen Geräte", "Standardwert [$nameParam] → $value1")
                                     }
                                 }
                         } catch (e: Exception) {

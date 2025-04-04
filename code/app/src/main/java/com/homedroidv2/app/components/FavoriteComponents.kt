@@ -46,31 +46,33 @@ class FavoriteComponents{
      */
     @RequiresApi(Build.VERSION_CODES.Q)
     @Composable
-    fun ListOfFavorites(viewModel: FavoriteViewModel = viewModel(), groupViewModel: GroupViewModel = viewModel()) {
+    fun ListOfFavorites(
+        viewModel: FavoriteViewModel = viewModel(),
+        groupViewModel: GroupViewModel = viewModel()
+    ) {
         val items by groupViewModel.groups.collectAsState()
         val itemsPerRow = 3
-        Log.i("FAVORITES", "$items")
 
-        Column(
-            modifier = Modifier.padding(8.dp)
-        ) {
+        // 🧠 Alle Favoriten aus allen Gruppen sammeln
+        val favorites = items.flatMap { group ->
+            group.devices.filter { it.favorite }.map { device ->
+                group to device
+            }
+        }
 
-            items.forEach{ group ->
-                group.devices.filter { it.favorite }.chunked(itemsPerRow).forEach { rowItems ->
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        rowItems.forEach {
-                            Log.i("FAVORITES IN ROW", "$it")
-                        when (it.messwertTyp) {
-                            "S" -> cardComponent.ActionDeviceCard(group.id, it)
-                            else -> cardComponent.TempAndStatusDeviceCard(group, it)
-                        }
+        Log.i("FAVORITES", "Found ${favorites.size} favorite devices")
+
+        Column(modifier = Modifier.padding(8.dp)) {
+            favorites.chunked(itemsPerRow).forEach { rowItems ->
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    rowItems.forEach { (group, device) ->
+                        Log.i("FAVORITES ROW ITEM", "${device.name} in group ${group.name}")
+                        when (device.messwertTyp) {
+                            "S" -> cardComponent.ActionDeviceCard(group.id, device)
+                            else -> cardComponent.TempAndStatusDeviceCard(group, device)
                         }
                     }
                 }
             }
         }
-    }
-}
+    }}
