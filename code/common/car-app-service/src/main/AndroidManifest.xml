@@ -11,7 +11,7 @@
             android:value="1" />
 
         <service
-            android:name="com.homedroid.carappservice.CarAppService"
+            android:name="com.homedroidv2.carappservice.CarAppService"
             android:exported="true">
             <intent-filter>
                 <action android:name="androidx.car.app.CarAppService" />
