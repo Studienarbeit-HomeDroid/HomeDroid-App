@@ -8,6 +8,14 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * [VERALTET] – Diese LoginViewModel-Klasse wird aktuell nicht mehr verwendet.
+ *
+ * Sie wurde durch eine neue Implementierung ersetzt und bleibt lediglich aus dokumentarischen
+ * Gründen im Projekt bestehen. Die Funktionalität zur Benutzeranmeldung über die
+ * Login-Komponente ist inzwischen anderweitig gelöst.
+ */
+
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val login: Login

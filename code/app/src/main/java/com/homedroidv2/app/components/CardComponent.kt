@@ -65,16 +65,16 @@ import com.homedroidv2.data.model.ParsedGroup
 class CardComponent {
 
     /**
-     * Displays Temperature and Status Device Card for the Favorite Section
-     * @param device The device object to be displayed, which can be either a StatusDevice or a TemperatureDevice.
-     * @param viewModel The ViewModel responsible for managing favorite devices. Defaults to the current `FavoriteViewModel`.
+     * Erstellt eine Karte für Geräte, mit denen nicht interagiert werden kann,
+     * zur Darstellung innerhalb der Favoritenansicht.
      *
-     * Interactions:
-     * - Click: Reserved for future functionality (currently no action).
-     * - Long Click:
-     *   - Displays a dialog to confirm the removal of the device as a favorite.
-     *   - Provides haptic feedback via vibration.
+     * Die Funktion nimmt ein `ParsedGroup`- und ein `ParsedDevice`-Objekt als Parameter entgegen,
+     * welche zur Bearbeitung der zugehörigen Einträge in der Datenbank verwendet werden.
+     *
+     * Zur sauberen Trennung von UI und Logik werden zusätzlich zwei ViewModels übergeben,
+     * über die der Daten- und Zustandszugriff erfolgt.
      */
+
     @OptIn(ExperimentalFoundationApi::class)
     @RequiresApi(Build.VERSION_CODES.Q)
     @Composable
@@ -89,7 +89,7 @@ class CardComponent {
                 .padding(5.dp)
                 .combinedClickable(
                     onClick = {
-                        /**Only Need because of the attributes of "combinedClickable"*/
+                        /**Nur benötigt da bei combinedClickabled die die Funktion erwartet wird*/
                     },
                     onLongClick = {
                         showDialog = true
@@ -172,7 +172,7 @@ class CardComponent {
             }
         }
         /**
-         * Dialog to confirm the removal of the device as a favorite
+         * Zeigt ein Dialog an zum entfernen des Favoriten Status
          */
         if (showDialog) {
             AlertDialog(
@@ -210,15 +210,8 @@ class CardComponent {
     }
 
     /**
-     * Displays Action Device Card for the Favorite and Status Sections of the different Groups
-     * @param device The device object to be displayed, which must be an ActionDevice.
-     * @param viewModel The ViewModel responsible for managing favorite devices. Defaults to the current `FavoriteViewModel`.
-     *
-     * Interactions:
-     * - Click: Toggles the state of the device between "on" and "off".
-     * - Long Click:
-     *   - Opens a dialog to add or remove the device as a favorite.
-     *   - Provides haptic feedback via vibration.
+     * Erstellt eine Karte für Geräte, mit denen interagiert werden kann,
+     * diese Werden innerhalb der Gruppenansicht angezeigt als auch in den Favoriten.
      */
     @RequiresApi(Build.VERSION_CODES.Q)
     @OptIn(ExperimentalFoundationApi::class)
@@ -352,8 +345,11 @@ class CardComponent {
         }
     }
 
-   @Composable
-   fun PopUp(device: ParsedDevices, onDismiss: () -> Unit) {
+    /**
+     * Pop welches beim Betätigen eines Gerätes angezeigt wird, um zu signalisieren, dass das Gerät aktiviert worden ist
+     */
+    @Composable
+    fun PopUp(device: ParsedDevices, onDismiss: () -> Unit) {
        val hapticFeedback = LocalHapticFeedback.current
 
        val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.success_animation_green))

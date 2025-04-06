@@ -1,12 +1,9 @@
 package com.homedroidv2.app.components
 
-import BottomSheetViewModel
+import com.homedroidv2.app.viewmodel.BottomSheetViewModel
 import android.annotation.SuppressLint
 import android.os.Build
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
-import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.car.app.connection.CarConnection
 import androidx.compose.foundation.clickable
@@ -32,12 +29,15 @@ import com.homedroidv2.data.model.ParsedGroup
 
 class GroupComponent {
 
+    /**
+     * Erstellt eine Liste an Gruppen für die Anwendung.
+     * Dafür werden aus dem ViewModel die notwendigen Daten ausgelesen und die entsprechenden UI Elemente erstellt.
+     */
     @RequiresApi(Build.VERSION_CODES.Q)
     @Composable
     fun GroupList(carConnectionType: Int,  htmlIsLoaded: Boolean, viewModel: GroupViewModel = viewModel()) {
         Log.i("GroupList", "In Group List")
         val groupsFlowList = viewModel.groups.collectAsState()
-        val context = LocalContext.current
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -57,6 +57,9 @@ class GroupComponent {
             )
         }
 
+            /**
+             * Baut die Liste an Gruppen zusammen und stellt sie dar.
+             */
             LazyRow(
                 modifier = Modifier.padding(end = 8.dp),
                 horizontalArrangement = Arrangement.Center
@@ -72,6 +75,9 @@ class GroupComponent {
             }
     }
 
+    /**
+     *
+     */
 
     @SuppressLint("NewApi")
     @Composable
@@ -80,7 +86,10 @@ class GroupComponent {
         val modalButtomSheetComponent = ModalButtomSheetComponent()
         val context = LocalContext.current
 
-        // ImageRequest für das Gruppen-Icon
+        /**
+         * Baut für die einzelnen Gruppen den Reqeust für die Icons der jeweiligen Gruppen zusammen
+         * Diese werden aber nur in den alten Version dargestellt, da Annotationen mit dem englischen Gruppennamen fehlen
+         */
         val imageRequest = ImageRequest.Builder(context)
             .setHeader(
                 "Authorization",
@@ -98,7 +107,6 @@ class GroupComponent {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.padding(5.dp)
             ) {
-                // Card-Layout für Gruppenbild und Namen
                 Card(
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant
@@ -150,14 +158,18 @@ class GroupComponent {
                 )
             }
 
-            // Zeige das BottomSheet für die Gruppe
+            /**
+             * Ruft beim Klick auf die Karte das BottomSheet auf
+             */
             if (openBottomSheet.getBottomSheetValue()) {
                 modalButtomSheetComponent.ModalButtomSheet(openBottomSheet, group)
             }
         }
     }
 
-    // Funktion zur Anzeige des aktuellen Projektionsstatus
+    /**
+     * Composables welches die Verbindung zum Auto zeigt
+     */
     @Composable
     fun ProjectionState(carConnectionType: Int, modifier: Modifier = Modifier) {
         val text = when (carConnectionType) {

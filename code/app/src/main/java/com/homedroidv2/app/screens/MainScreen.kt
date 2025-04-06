@@ -39,8 +39,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
 /**
- * Main screen activity which serves as the entry point for the app's main UI.
- * It organizes the layout by including different components such as the GroupList, Dashboard, and Favorites.
+ * MainScreen Activity verwaltet die Hauptaktivitäten die in der App angezeigt werden
+ * Ebenfalls wird auf dieser Ebene der Anwendung das Neuladen der Daten initiiert
  */
 
 @AndroidEntryPoint
@@ -57,6 +57,9 @@ class MainScreen : ComponentActivity() {
         val scope = rememberCoroutineScope()
         val isRefreshing = remember { mutableStateOf(false) }
 
+        /**
+         * Startet das neu Laden der Anwendung
+         */
         val refreshState = rememberPullRefreshState(
             refreshing = isRefreshing.value,
             onRefresh = {
@@ -81,6 +84,9 @@ class MainScreen : ComponentActivity() {
                         .padding(WindowInsets.systemBars.asPaddingValues()),
                     color = MaterialTheme.colorScheme.primary
                 ) {
+                    /**
+                     * Stellt die einzelnen Komponenten der App dar
+                     */
                     Column(modifier = Modifier.padding(horizontal = 8.dp)) {
                         groupComponent.GroupList(
                             carConnectionType,
@@ -94,6 +100,10 @@ class MainScreen : ComponentActivity() {
                     }
                 }
 
+                /**
+                 * Komponente die die Aktualisierungsanzeige darstellt.
+                 * Wird durch nach unten zeihen auf dem Bildschirm ausgelöst
+                 */
                 PullRefreshIndicator(
                     refreshing = isRefreshing.value,
                     state = refreshState,

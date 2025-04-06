@@ -3,6 +3,7 @@ package com.homedroidv2.app.di
 import android.content.Context
 import com.homedroidv2.data.network.HtmlClient
 import com.homedroidv2.data.parser.HtmlParser
+import com.homedroidv2.data.repositories.DashboardRepository
 import com.homedroidv2.data.repositories.GroupRepository
 import dagger.Module
 import dagger.Provides
@@ -19,11 +20,12 @@ object HtmlParserModule {
     @Singleton
     fun provideHtmlParser(
         @ApplicationContext context: Context,
+        dashboardRepository: DashboardRepository,
         htmlClient: HtmlClient,
         groupRepository: GroupRepository
     ): HtmlParser {
         return HtmlParser(
-            context, groupRepository, htmlClient
+            context, dashboardRepository, groupRepository, htmlClient
         )
     }
 }

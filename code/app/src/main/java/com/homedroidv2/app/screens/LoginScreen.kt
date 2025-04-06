@@ -44,18 +44,32 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.homedroidv2.app.ui.theme.HomeDroidTheme
+import com.homedroidv2.app.viewmodel.LoginViewModel
 import com.homedroidv2.app.viewmodel.ServerConfigViewModel
 
 class LoginScreen: ComponentActivity() {
 
+    /**
+     * Wurde für die frühre Version gebraucht, ist aber für die aktuelleste Version nicht von Nutzen
+     * Enthält die Benutzeroberfläch welche die Login Komponenten der Anwendung bereitstellt.
+     * Login Form besteht dabei aus dem Benutzernamen dem Passwort sowie ein Knopf zum Starten des Logins
+     *
+     * Zur Trennung zwischen UI und Logik nutzt die Komponenten das LoginViewModel
+     */
     @Composable
-    fun LoginComponent(viewModel: ServerConfigViewModel = viewModel() ): Boolean {
+    fun LoginComponent(viewModel: LoginViewModel = viewModel() ): Boolean {
 
+        /**
+         * Speichert die Daten für das Login, innerhalb des Lifecycles des UIs (eines Composables)
+         */
         var username by remember { mutableStateOf("") }
         var password by remember { mutableStateOf("") }
         var isLoggedIn by remember { mutableStateOf(false) }
 
-
+        /**
+         * Erstellt das Login-UI innerhalb des App-Themes. Die Benutzeroberfläche besteht aus einem
+         * zentral ausgerichteten Layout mit Logo, Begrüßungstext und Eingabefeld für das Passwort.
+         */
         HomeDroidTheme {
             Surface(
                 modifier = Modifier
@@ -123,7 +137,6 @@ class LoginScreen: ComponentActivity() {
                         Button(
                             onClick = {
                                 isLoading = true
-                                viewModel.password = password
                                 isLoggedIn = true
 //                                viewModel.logIn(username, password) {
 //                                    Log.i("Login", "Login result: $it")
@@ -160,17 +173,6 @@ class LoginScreen: ComponentActivity() {
                             }
                         }
 
-//                    Spacer(modifier = Modifier.height(50.dp))
-//
-//                    Image(
-//                        painter = painterResource(id = com.homedroid.app.R.drawable.google_login_light),
-//                        contentDescription = "Google Login Button",
-//                        modifier = Modifier
-//                            .width(200.dp)
-//                            .height(45.dp)
-//                            .clip(RoundedCornerShape(20.dp))
-//                            .clickable {  }
-//                    )
                     }
                 }
             }

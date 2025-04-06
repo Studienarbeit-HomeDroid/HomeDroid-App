@@ -14,20 +14,30 @@
  * limitations under the License.
  */
 
+
+
 package com.homedroidv2.app.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
+/**
+ * Alle Farbkombinationen für das UI Design.
+ */
 
 
 val Yellow = Color(0xFFFDE303)
 
+/**
+ * Farbkombinationen für Light Modus
+ */
 val SurfaceLigth = Color(0xFFF4FBF8)
 val ClearWhiteLigth = Color(0xFFFFFFFF)
 val FontColorLight = Color(0xFF000000)
 val GroupColorLight = Color(0xFFDFE3E1)
 
-
+/**
+ * Farbkombinationen für den Dark Modus
+ */
 val SurfaceDark = Color(0xFF212121)
 val ClearWhiteDark = Color(0xFF333232)
 val FontColorDark = Color(0xFFFFFFFF)

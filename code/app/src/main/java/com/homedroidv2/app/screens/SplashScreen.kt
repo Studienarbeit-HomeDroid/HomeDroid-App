@@ -29,7 +29,7 @@ import com.homedroidv2.carappservice.R
 
 
 /**
- * Loading Screen activity which serves as the entry point for the app's loading UI.
+ * Loading Screen activity welche Anzeigt, das die Daten derzeit geladen werden.
  */
 
 @SuppressLint("CustomSplashScreen")
@@ -40,7 +40,6 @@ class SplashScreen : ComponentActivity() {
     @Composable
     fun SplashScreen(isParsing: Boolean, onSplashFinished: () -> Unit) {
         LaunchedEffect(Unit) {
-            delay(500)
             onSplashFinished()
         }
 
@@ -105,7 +104,7 @@ class SplashScreen : ComponentActivity() {
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            androidx.compose.material3.Text(
+                            Text(
                                 text = "Studienarbeit",
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     fontSize = 12.sp
@@ -114,7 +113,7 @@ class SplashScreen : ComponentActivity() {
                                 textAlign = TextAlign.Center
                             )
 
-                            androidx.compose.material3.Text(
+                            Text(
                                 text = "TINF22B2",
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     fontSize = 12.sp
@@ -122,8 +121,8 @@ class SplashScreen : ComponentActivity() {
                                 modifier = Modifier.fillMaxWidth(),
                                 textAlign = TextAlign.Center
                             )
-                            androidx.compose.material3.Text(
-                                text = "Version: v.2",
+                            Text(
+                                text = "Version: v.6",
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     fontSize = 12.sp
                                 ),

@@ -36,6 +36,12 @@ import androidx.compose.ui.res.painterResource
 
 class ServerKonfigScreen : ComponentActivity() {
 
+    /**
+     * Composable-Funktion zur Konfiguration des Servers durch den Nutzer.
+     *
+     * Diese Funktion stellt eine Oberfläche bereit, über die die Server-URL eingegeben und ein
+     * Client-Zertifikat aus dem Android Certificate Store ausgewählt werden kann.
+     */
     @Composable
     fun ServerKonfig(context: Context, viewModel: ServerConfigViewModel = viewModel(), onFinished: () -> Unit) {
 
@@ -44,38 +50,6 @@ class ServerKonfigScreen : ComponentActivity() {
         var certUri by remember { mutableStateOf<Uri?>(null) }
 
         val aliasSelected = remember { mutableStateOf(false) }
-
-//        if (!aliasSelected.value) {
-//            LaunchedEffect(Unit) {
-//                KeyChain.choosePrivateKeyAlias(
-//                    context as Activity,
-//                    { alias ->
-//                        Log.d("ServerKonfig", "Zertifikatsalias: $alias")
-//                        aliasSelected.value = true
-//                        viewModel.setCertAlias(alias)
-//
-//                    },
-//                    null, null, null, -1, null
-//                )
-//            }
-//        }
-
-        val certPicker = rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.OpenDocument()
-        ) { uri ->
-            uri?.let {
-                try {
-                    context.contentResolver.takePersistableUriPermission(
-                        it,
-                        Intent.FLAG_GRANT_READ_URI_PERMISSION
-                    )
-                    certUri = it
-                    Log.d("ServerKonfig", "Zertifikat ausgewählt: $it")
-                } catch (e: SecurityException) {
-                    Log.e("ServerKonfig", "Zugriff auf Zertifikat fehlgeschlagen: ${e.message}")
-                }
-            }
-        }
 
         HomeDroidTheme {
             Surface(
@@ -154,36 +128,7 @@ class ServerKonfigScreen : ComponentActivity() {
 
                         Spacer(modifier = Modifier.height(10.dp))
 
-//                    OutlinedTextField(
-//                        value = password,
-//                        maxLines = 1,
-//                        leadingIcon = {
-//                            Icon(Icons.Default.Key, contentDescription = "password")
-//                        },
-//                        label = { Text("Enter Passwort") },
-//                        textStyle = TextStyle(
-//                            fontWeight = FontWeight.Normal,
-//                            color = MaterialTheme.colorScheme.onPrimary
-//                        ),
-//                        onValueChange = { password = it },
-//                        modifier = Modifier.fillMaxWidth(),
-//                        shape = RoundedCornerShape(16.dp),
-//                        colors = TextFieldDefaults.colors(
-//                            cursorColor = MaterialTheme.colorScheme.onPrimary,
-//                            focusedContainerColor = Color.Transparent,
-//                            unfocusedContainerColor = Color.Transparent,
-//                            focusedTextColor = MaterialTheme.colorScheme.onPrimary,
-//                            focusedLabelColor = MaterialTheme.colorScheme.onPrimary,
-//                            focusedIndicatorColor = MaterialTheme.colorScheme.onPrimary,
-//                            unfocusedIndicatorColor = MaterialTheme.colorScheme.onPrimary,
-//                            unfocusedLabelColor = MaterialTheme.colorScheme.onPrimary,
-//                            unfocusedTextColor = MaterialTheme.colorScheme.onPrimary,
-//                        )
-//                    )
-
                         Spacer(modifier = Modifier.height(10.dp))
-
-
 
                         Button(
                             onClick = {

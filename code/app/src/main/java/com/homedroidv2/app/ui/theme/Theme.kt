@@ -48,6 +48,12 @@ private val LightColorScheme = lightColorScheme(
 
 )
 
+/**
+ * Definiert das Design-Thema der App (HomeDroidTheme) basierend auf dem aktuellen Systemmodus (Hell/Dunkel)
+ *
+ * Es werden zwei Farbschemata bereitgestellt
+ */
+
 @Composable
 fun HomeDroidTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),

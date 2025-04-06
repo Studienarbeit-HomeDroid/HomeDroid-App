@@ -13,6 +13,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * [VERALTET] – Diese ViewModel-Klasse wurde durch eine neue Implementierung ersetzt und wird aktuell
+ * nicht mehr verwendet. Sie bleibt im Projekt erhalten, um ggf. auf frühere Logik oder Datenzugriffe
+ * zurückgreifen zu können.
+ */
+
 @HiltViewModel
 class FavoriteViewModel @Inject constructor(
     private val favoriteRepository: IFavoriteRepository // Interface statt konkrete Klasse für bessere Abstraktion

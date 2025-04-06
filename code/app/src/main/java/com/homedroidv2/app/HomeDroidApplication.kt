@@ -18,9 +18,10 @@ import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp
 class HomeDroidApplication : Application(), ImageLoaderFactory {
+
     /**
-     * Called when the application is created.
-     * Initializes Firebase Database
+     * Wird aufgerufen, beim Startet der App
+     * Initialisiert die Datenbank, sowie die Analyse Tools
      */
     private lateinit var auth: FirebaseAuth
     private lateinit var mTracker: Tracker
@@ -31,13 +32,22 @@ class HomeDroidApplication : Application(), ImageLoaderFactory {
         super.onCreate()
             FirebaseApp.initializeApp(this)
             FirebaseCrashlytics.getInstance().isCrashlyticsCollectionEnabled = true
+
             val analytics = GoogleAnalytics.getInstance(this)
-        // Erstelle einen Tracker, indem du die Tracking-ID verwendest
             mTracker = analytics.newTracker("UA-XXXXXXX-Y")
          auth = FirebaseAuth.getInstance()
             signIn()
     }
 
+    /**
+     * Führt die Anmeldung eines Benutzers über Firebase Authentication durch.
+     *
+     * Verwendet eine vordefinierte E-Mail-Adresse und ein Passwort, um sich mit dem
+     * Firebase-Authentifizierungsdienst zu verbinden.
+     *
+     */
+
+    // TODO: Zugangsdaten sind aktuell statisch hinterlegt. Noch in Secret auslagern
     fun signIn() {
         auth.signInWithEmailAndPassword("user@example.com", "password123")
             .addOnCompleteListener { task ->
@@ -51,9 +61,9 @@ class HomeDroidApplication : Application(), ImageLoaderFactory {
     }
 
     /**
-     * Creates and configures a new ImageLoader instance for the application.
-     * This function customizes the image loading behavior by setting up memory and disk caches,
-     * SVG decoding support
+     * Erstellt und konfiguriert eine neue ImageLoader-Instanz für die Anwendung.
+     * Diese Funktion passt das Ladeverhalten für Bilder an, indem sie Speicher- und Festplattencaches einrichtet
+     * sowie die Unterstützung für das Dekodieren von SVG-Dateien aktiviert.
      */
     override fun newImageLoader(): ImageLoader {
         return ImageLoader.Builder(this)

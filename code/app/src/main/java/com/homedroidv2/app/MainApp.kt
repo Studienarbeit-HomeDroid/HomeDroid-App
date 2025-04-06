@@ -1,6 +1,5 @@
 package com.homedroidv2.app
 
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -8,11 +7,13 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import androidx.car.app.connection.CarConnection
-import androidx.compose.runtime.*
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.homedroidv2.app.screens.LoginScreen
 import com.homedroidv2.app.screens.MainScreen
 import com.homedroidv2.app.screens.ServerKonfigScreen
 import com.homedroidv2.app.screens.SplashScreen
@@ -24,6 +25,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+/**
+ * Hauptkomponente der Anwendung, zuständig für den App-Start und die Initialkonfiguration.
+ *
+ * Diese Klasse implementiert die zentrale Logik zum Aufbau der Benutzeroberfläche und verwaltet die Navigation
+ * zwischen den verschiedenen Screens (Splash, Server-Konfiguration, MainScreen).
+ */
 @AndroidEntryPoint
 class MainApp : ComponentActivity() {
 
@@ -32,7 +39,7 @@ class MainApp : ComponentActivity() {
 
     private val splashActivity = SplashScreen()
     private val mainActivity = MainScreen()
-    private val loginScreen = LoginScreen()
+    //private val loginScreen = LoginScreen()
     private val serverKonfigScreen = ServerKonfigScreen()
 
     private var html: String = ""
@@ -48,15 +55,14 @@ class MainApp : ComponentActivity() {
 
             var showSplash by remember { mutableStateOf(true) }
             var isParsing by remember { mutableStateOf(false) }
-            var loginChecked by remember { mutableStateOf(false) }
             var serverKonfigCompleted by remember { mutableStateOf(false) }
             var htmlIsLoaded by remember { mutableStateOf(false) }
             var initCheckDone by remember { mutableStateOf(false) }
 
             val config = viewModel.getServerConfig(this)
             val serverUrl = config["server_url"]
-            val certUri = config["cert_uri"]
-            val certPwd = config["cert_pwd"]
+            config["cert_uri"]
+            config["cert_pwd"]
             val alias = config["alias"]
             Log.d("DEBUG MAIN", "SERVER URL: $serverUrl")
             Log.d("DEBUG MAIN", "ALIAS: $alias")

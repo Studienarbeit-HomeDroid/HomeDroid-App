@@ -3,19 +3,15 @@ package com.homedroidv2.app.viewmodel
 import android.app.ProgressDialog
 import android.content.Context
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.security.KeyChain
 import android.util.Log
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.firebase.analytics.FirebaseAnalytics
-import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.homedroidv2.data.model.ParsedDevices
@@ -28,34 +24,27 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONArray
 import org.json.JSONObject
-import java.io.InputStream
 import java.net.Socket
-import java.net.URL
 import java.net.URLEncoder
-import java.security.KeyStore
 import java.security.PrivateKey
 import java.time.LocalDateTime
 import javax.inject.Inject
-import javax.net.ssl.*
-import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withPermit
-import okhttp3.FormBody
+import javax.net.ssl.SSLContext
+import javax.net.ssl.X509KeyManager
+import javax.net.ssl.X509TrustManager
 
 @HiltViewModel
-
 class ServerConfigViewModel @Inject constructor(
-    private var database: FirebaseDatabase,
+    database: FirebaseDatabase,
     private val dashboardRepository: DashboardRepository,
     private val groupRepository: GroupRepository
 ) : ViewModel() {
@@ -85,7 +74,6 @@ class ServerConfigViewModel @Inject constructor(
         logsRef.push().setValue(logEntry)
 
     }
-
 
     private lateinit var firebaseAnalytics: FirebaseAnalytics
 
@@ -132,21 +120,6 @@ class ServerConfigViewModel @Inject constructor(
                 onResult(false)
             }
         }
-    }
-
-    fun setConfig( url: String, uri: Uri?, pwd: String, alias: State<String?> ) {
-        Log.i("Cert", "set Config")
-        Log.i("Cert", "Server URL: $url")
-        Log.i("Cert", "Cert URI: $uri")
-        Log.i("Cert", "CERT PWD: $pwd")
-        serverUrl = url
-        certUri = uri
-        password = pwd
-        certAlias = alias
-    }
-
-    private fun getCertificateStream(context: Context): InputStream? {
-        return certUri?.let { context.contentResolver.openInputStream(it) }
     }
 
     private fun createSecureClient(context: Context): OkHttpClient {
@@ -226,183 +199,7 @@ class ServerConfigViewModel @Inject constructor(
         }
     }
 
-//    private fun createSecureClient(context: Context): OkHttpClient {
-//        val alias = certAlias.value ?: throw Exception("Kein Zertifikatsalias gesetzt")
-//
-//        val privateKey = KeyChain.getPrivateKey(context, alias)
-//        val certChain = KeyChain.getCertificateChain(context, alias)
-//
-//        val keyManager = object : X509KeyManager {
-//            override fun getClientAliases(keyType: String?, issuers: Array<java.security.Principal>?): Array<String>? {
-//                return arrayOf(alias)
-//            }
-//
-//            override fun chooseClientAlias(keyTypes: Array<String>?, issuers: Array<java.security.Principal>?, socket: Socket?): String {
-//                return alias
-//            }
-//
-//            override fun getCertificateChain(alias: String?): Array<java.security.cert.X509Certificate> {
-//                return certChain
-//                    ?.mapNotNull { it as? java.security.cert.X509Certificate }
-//                    ?.toTypedArray()
-//                    ?: emptyArray()
-//            }
-//
-//            override fun getPrivateKey(alias: String?): PrivateKey? {
-//                return privateKey
-//            }
-//
-//            override fun getServerAliases(keyType: String?, issuers: Array<java.security.Principal>?): Array<String>? = null
-//            override fun chooseServerAlias(keyType: String?, issuers: Array<java.security.Principal>?, socket: Socket?): String? = null
-//        }
-//
-//        val trustAllManager = object : X509TrustManager {
-//            override fun getAcceptedIssuers(): Array<java.security.cert.X509Certificate> = arrayOf()
-//            override fun checkClientTrusted(chain: Array<java.security.cert.X509Certificate>, authType: String) {}
-//            override fun checkServerTrusted(chain: Array<java.security.cert.X509Certificate>, authType: String) {}
-//        }
-//
-//        val sslContext = SSLContext.getInstance("TLS")
-//        sslContext.init(arrayOf(keyManager), arrayOf(trustAllManager), null)
-//
-//        return OkHttpClient.Builder()
-//            .sslSocketFactory(sslContext.socketFactory, trustAllManager)
-//            .hostnameVerifier { _, _ -> true }
-//            .build()
-//    }
-
-//    private fun createSecureClient(context: Context): OkHttpClient {
-////        val certStream = try {
-////            getCertificateStream(context) ?: throw Exception("Kein Zertifikat gefunden")
-////        } catch (e: Exception) {
-////            Log.e("HTTP", "Zertifikat konnte nicht gelesen werden ${e.message}", e)
-////            showToast(context, "Zertifikat konnte nicht gelesen werden: ${e.message}")
-////            FirebaseCrashlytics.getInstance().log("Zertifikat konnte nicht gelesen werden")
-////            FirebaseCrashlytics.getInstance().recordException(e)
-////            logAnalyticsError("Zertifikat konnte nicht gelesen werden", e)
-////            logDataToFirestore(" URL: $serverUrl Zertifikat konnte nicht gelesen werden : $e")
-////
-////            throw e
-////        }
-////
-////        val pwd = password ?: ""
-////
-////        val keyStore = try {
-////            KeyStore.getInstance("PKCS12").apply {
-////                load(certStream, pwd.toCharArray())
-////            }
-////        } catch (e: Exception) {
-////            Log.e("HTTP", "Fehler beim Laden des Zertifikats: ${e.message}", e)
-////            showToast(context, "Fehler beim Laden des Zertifikats: ${e.message}")
-////            FirebaseCrashlytics.getInstance().log("Fehler beim Laden des Zertifikats")
-////            FirebaseCrashlytics.getInstance().recordException(e)
-////            logAnalyticsError("Fehler beim Laden des Zertifikats\"", e)
-////            logDataToFirestore("URL: $serverUrl  Fehler beim Laden des Zertifikats: $e")
-////
-////            throw e
-////        }
-//        val alias = certAlias.value
-//            ?: throw Exception("Kein Zertifikatsalias gesetzt")
-//
-//        val privateKey = KeyChain.getPrivateKey(context, alias)
-//        val certChain = KeyChain.getCertificateChain(context, alias)
-//
-//        val keyStore = KeyStore.getInstance("AndroidKeyStore").apply {
-//            load(null)
-//            setKeyEntry(
-//                alias,
-//                privateKey,
-//                null,
-//                certChain
-//            )
-//        }
-//
-//        val kmf = try {
-//            KeyManagerFactory.getInstance("X509").apply {
-//                init(keyStore, null)
-//            }
-//        } catch (e: Exception) {
-//            Log.e("HTTP", "Fehler beim Initialisieren des KeyManagers: ${e.message}", e)
-//            showToast(context, "Fehler beim Initialisieren des KeyManagers: ${e.message}")
-//            FirebaseCrashlytics.getInstance().log("Fehler beim Initialisieren des KeyManagers")
-//            FirebaseCrashlytics.getInstance().recordException(e)
-//            logAnalyticsError("Fehler beim Initialisieren des KeyManagers", e)
-//            logDataToFirestore("URL: $serverUrl  Fehler beim Initialisieren des KeyManagers : $e")
-//
-//            throw e
-//        }
-//
-//        val trustAllManager = object : X509TrustManager {
-//            override fun getAcceptedIssuers(): Array<java.security.cert.X509Certificate> = arrayOf()
-//            override fun checkClientTrusted(
-//                chain: Array<java.security.cert.X509Certificate>,
-//                authType: String
-//            ) {
-//            }
-//
-//            override fun checkServerTrusted(
-//                chain: Array<java.security.cert.X509Certificate>,
-//                authType: String
-//            ) {
-//            }
-//        }
-//
-//        val sslContext = try {
-//            SSLContext.getInstance("TLS").apply {
-//                init(kmf.keyManagers, arrayOf(trustAllManager), null)
-//            }
-//        } catch (e: Exception) {
-//            Log.e("HTTP", "Fehler beim Initialisieren von SSL: ${e.message}", e)
-//            showToast(context, "Fehler beim Initialisieren von SSL: ${e.message}")
-//            FirebaseCrashlytics.getInstance().log("Fehler beim Initialisieren von SSL")
-//            FirebaseCrashlytics.getInstance().recordException(e)
-//            logAnalyticsError(" URL: $serverUrl Fehler beim Initialisieren von SSL", e)
-//            logDataToFirestore(" URL: $serverUrl Fehler beim Initialisieren von SSL : $e")
-//
-//
-//            throw e
-//        }
-//
-//        return OkHttpClient.Builder()
-//            .sslSocketFactory(sslContext.socketFactory, trustAllManager)
-//            .hostnameVerifier { _, _ -> true }
-//            .build()
-//    }
-
-//    fun checkConnection(context: Context, onResult:  (Boolean) -> Unit) {
-//        initAnalytics(context)
-//        Log.d("Result", "Checkconnection")
-//        viewModelScope.launch(Dispatchers.IO) {
-//            try {
-//                val client = createSecureClient(context)
-//                val url = serverUrl ?: return@launch onResult(false)
-//
-//                val request = Request.Builder().url(url).build()
-//                val response = client.newCall(request).execute()
-//
-//                Log.d("HTTP", "Code: ${response.code}")
-//                Log.d("HTTP", "After")
-//                val bodyString = response.body?.string()
-//                html = bodyString
-//                if (bodyString != null) {
-//                    logDataToFirestore(bodyString)
-//                }
-//                Log.d("HTTP", "HTML: $html")
-//                onResult(true)
-//            } catch (e: Exception) {
-//                Log.e("HTTP", "Fehler: ${e.message}")
-//                FirebaseCrashlytics.getInstance().log("Fehler bei der Secure Request")
-//                FirebaseCrashlytics.getInstance().recordException(e)
-//                logAnalyticsError("Fehler bei der Secure Request", e)
-//                logDataToFirestore(" URL: $serverUrl Fehler bei der Secure Request: $e")
-//
-//
-//                onResult(false)
-//            }
-//        }
-//    }
-
-        fun sendSecureRequest(context: Context, sendToast: Boolean, onResult: (Boolean) -> Unit) {
+    fun sendSecureRequest(context: Context, sendToast: Boolean, onResult: (Boolean) -> Unit) {
             viewModelScope.launch(Dispatchers.IO) {
                 try {
                     val client = createSecureClient(context)
@@ -448,7 +245,7 @@ class ServerConfigViewModel @Inject constructor(
             }
         }
 
-        fun getServerConfig(context: Context): Map<String, String> {
+    fun getServerConfig(context: Context): Map<String, String> {
             val prefs = context.getSharedPreferences("cert_prefs", Context.MODE_PRIVATE)
             return mapOf(
                 "server_url" to prefs.getString("server_url", "").orEmpty(),
@@ -456,12 +253,6 @@ class ServerConfigViewModel @Inject constructor(
                 "cert_pwd" to prefs.getString("cert_pwd", "").orEmpty(),
                 "alias" to prefs.getString("alias", "").orEmpty()
             )
-        }
-
-        private fun showToast(context: Context, message: String) {
-            viewModelScope.launch(Dispatchers.Main) {
-                Toast.makeText(context, message, Toast.LENGTH_LONG).show()
-            }
         }
 
     private fun logAnalyticsSuccess(eventName: String, responseCode: Int, responseBody: String?) {
@@ -481,7 +272,7 @@ class ServerConfigViewModel @Inject constructor(
         firebaseAnalytics.logEvent("request_failure", params)
     }
 
-    public fun fetchAllDatas(context: Context)
+    fun fetchAllDatas(context: Context)
     {
         requestCount = 0
         deviceCount = 0
@@ -514,21 +305,6 @@ class ServerConfigViewModel @Inject constructor(
     val openDoors = mutableListOf<String>()
     val unlockedDoors = mutableListOf<String>()
 
-
-
-    fun updateOpenDoors() {
-        viewModelScope.launch {
-            dashboardRepository.updateOpenDoorDatas(openDoors.size.toString())
-
-        }
-    }
-
-    fun updateClosedDoors() {
-        viewModelScope.launch {
-            dashboardRepository.updateClosedDoorDatas(unlockedDoors.size.toString())
-
-        }
-    }
 
     fun fetchSolarData(context: Context){
         viewModelScope.launch(Dispatchers.IO) {
@@ -684,7 +460,6 @@ class ServerConfigViewModel @Inject constructor(
 
     }
 
-
     suspend fun processAllDevicesWithLimit(
         group: ParsedGroup,
         devices: List<ParsedDevices>,
@@ -705,7 +480,6 @@ class ServerConfigViewModel @Inject constructor(
 
         jobs.awaitAll()
     }
-
 
     suspend fun processKNXDevice(group: ParsedGroup, devices: ParsedDevices, client: OkHttpClient, url: String) {
         if (devices.adresse.startsWith("x") || devices.adresse.isEmpty()) {
@@ -869,7 +643,6 @@ class ServerConfigViewModel @Inject constructor(
         Log.d("KNX", "Fertig verarbeitet: ${devices.name} (${devices.htmlId})")
     }
 
-
     suspend fun processFritzDevice(
         group: ParsedGroup,
         devices: ParsedDevices,
@@ -920,37 +693,6 @@ class ServerConfigViewModel @Inject constructor(
             }
         }
 
-//    suspend fun delockSwitchAndUpdate(
-//        context: Context,
-//        device: ParsedDevices,
-//        value: String,
-//        groupId: Int,
-//    ) {
-//        val client = createSecureClient(context)
-//        val config = getServerConfig(context)
-//        val url = config["server_url"]
-//
-//
-//        val requestUrl = "$url/sh/delock/ajax/write_delock_state.php?device=${device.adresse}&value=$value&ID=${device.htmlId}"
-//                val request = Request.Builder()
-//                    .url(requestUrl)
-//                    .post(FormBody.Builder().build())
-//                    .build()
-//
-//                client.newCall(request).execute().use { response ->
-//                    if (!response.isSuccessful) {
-//                        Log.e("DELOCK SWITCH", "Unexpected code $response")
-//                        return
-//                    }
-//
-//                    val responseBody = response.body?.string() ?: return
-//                    val delockData = JSONObject(responseBody)
-//                        if (delockData.optString("POWER") == "ON") {
-//                            groupRepository.updateDeviceValue(groupId.toString(), device, "1")
-//                        } else {
-//                            groupRepository.updateDeviceValue(groupId.toString(), device, "0")
-//                        }
-//                    }
-//        }
+
 
 }

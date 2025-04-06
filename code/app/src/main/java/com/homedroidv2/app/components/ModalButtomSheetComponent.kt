@@ -1,6 +1,6 @@
 package com.homedroidv2.app.components
 
-import BottomSheetViewModel
+import com.homedroidv2.app.viewmodel.BottomSheetViewModel
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -52,12 +52,10 @@ import kotlinx.coroutines.launch
 class ModalButtomSheetComponent {
 
     /**
-     * Displays a ModalBottomSheet for a specific group.
+     * Erzeugt das BottomSheet für die Gruppenansicht (Die Komponente die erscheint wenn auf eine Gruppe gedrückt wird).
      *
-     * @param openButtomSheet The ViewModel controlling the sheet's visibility.
-     * @param group The group whose details and devices are displayed in the sheet.
+     * Die ViewModels verwalten den Status der Sheet und die Daten für die Anzeige.
      */
-
     @RequiresApi(Build.VERSION_CODES.Q)
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
@@ -78,6 +76,9 @@ class ModalButtomSheetComponent {
                     modifier = Modifier
                         .padding(top = 13.dp)
                 )
+                /**
+                 * Abhängig vom Gerätetypen werden die Geräte zu unterschiedlichen Gruppen zugeordnet
+                 */
                 if (group.devices.filter { it.messwertTyp == "Temp" || it.messwertTyp == "TLFH" }.isNotEmpty()) {
                     Text(
                         text = "Temperatur",
@@ -146,6 +147,9 @@ class ModalButtomSheetComponent {
                 }
 
 
+                /**
+                 * Für alle deren Typ nicht den oberen entspricht werden hier angezeigt
+                 */
 
                 val knownTypes = listOf("Temp", "TLFH", "F", "R", "S", "T", "V")
 
@@ -169,7 +173,7 @@ class ModalButtomSheetComponent {
     }
 
     /**
-     * Creates a row of action devices.
+     * Erstellt die Spaltenansicht der Geräte
      */
     @RequiresApi(Build.VERSION_CODES.Q)
     @Composable
@@ -195,7 +199,7 @@ class ModalButtomSheetComponent {
     }
 
     /**
-     * Creates a row for a Status and Temperature device.
+     * Erzeugt die einzelne Reihe innerhalb der Liste
      */
     @OptIn(DelicateCoroutinesApi::class)
     @Composable
@@ -204,26 +208,24 @@ class ModalButtomSheetComponent {
         var isFavorite by remember { mutableStateOf(false) }
 
         /**
-         * Point of show the favorite button
+         *  Punkt bis vohin die Karte nach rechts verschoben werden kann
          */
         val swipeThreshold = 60f
 
         /**
-         * Maximum swipe distance
+         * Maximale Bewegung nach rechts
          */
         val maxSwipe = 80f
 
-        /**
-         * - Uses `pointerInput` to detect horizontal drag gestures:
-         *  - Updates `swipeOffset` based on the drag amount.
-         *  - Constrains the offset to stay within -maxSwipe and 0.
-         */
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(45.dp)
                 .padding(6.dp)
                 .pointerInput(Unit) {
+                    /**
+                     * Berechnung zur Darstellung der Favoriten Icons oder nicht
+                     */
                     detectHorizontalDragGestures { _, dragAmount ->
                         swipeOffset = (swipeOffset + dragAmount).coerceIn(-maxSwipe, 0f)
                     }
@@ -270,15 +272,7 @@ class ModalButtomSheetComponent {
                         .align(Alignment.CenterEnd)
                         .clip(RoundedCornerShape(12.dp))
                         .clickable {
-                            if (device.favorite) {
-                               // viewModel.removeFavorite(device)
-                            } else {
-                                //viewModel.addFavorite(device)
-                                Log.i("DEVICES CLICKED", device.toString())
-
-                            }
                             groupViewModel.updateFavorite(group.id, device)
-
                             isFavorite = !isFavorite
                             GlobalScope.launch {
                                 delay(1000)
@@ -299,6 +293,9 @@ class ModalButtomSheetComponent {
     }
 
 
+    /**
+     * Zeigt die Werte der Devices an
+     */
     @Composable
     fun RowContent(name: String, value: String, unit: String, swipeOffset: Float) {
         Row(

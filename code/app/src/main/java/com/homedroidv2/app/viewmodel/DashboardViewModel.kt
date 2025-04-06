@@ -13,6 +13,16 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel für das Dashboard, das mit Hilt für Dependency Injection bereitgestellt wird.
+ *
+ * Verantwortlich für das Verwalten und Bereitstellen der UI-relevanten Daten aus dem DashboardRepository.
+ *
+ * Beide Flows werden beim Initialisieren des ViewModels in separaten Coroutines innerhalb des viewModelScope
+ * abonniert. Änderungen im Repository führen automatisch zur Aktualisierung des UI-Zustands.
+ *
+ */
+
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
     private val dashboardRepository: DashboardRepository
@@ -29,15 +39,11 @@ class DashboardViewModel @Inject constructor(
             dashboardRepository.getHeizungFlow().collect { heizungList ->
                 _heizungData.value = heizungList
             }
-        }
-
-        viewModelScope.launch {
             dashboardRepository.getDashboardFlow().collect { dashboardList ->
                 Log.d("DashboardViewModel", "Received dashboard data: $dashboardList")
                 _dashboardData.value = dashboardList
             }
         }
-
 
     }
 }

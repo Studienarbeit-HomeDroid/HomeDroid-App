@@ -13,6 +13,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel zur Verwaltung von Gerätegruppen innerhalb der Anwendung.
+ *
+ * Diese Klasse stellt über ein StateFlow eine beobachtbare Liste von `ParsedGroup`-Objekten bereit,
+ * Änderungen werden automatisch über einen Flow empfangen und im UI dargestellt.
+ *
+ * */
 @HiltViewModel
 class GroupViewModel @Inject constructor(
     private val groupRepository: IGroupRepository
@@ -30,6 +37,10 @@ class GroupViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Aktualisiert ein Gerät innerhalb einer Gruppe.
+     */
+
     fun updateGroup(groupId: Int?, device: ParsedDevices) {
         Log.d("Firebase Group", "Group exists: $device")
         viewModelScope.launch {
@@ -37,6 +48,9 @@ class GroupViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Aktualisiert die Favoritenstatus einer Gruppe.
+     */
     fun updateFavorite(groupId: Int?, device: ParsedDevices) {
         viewModelScope.launch {
             groupRepository.updateFavorite(groupId, device)

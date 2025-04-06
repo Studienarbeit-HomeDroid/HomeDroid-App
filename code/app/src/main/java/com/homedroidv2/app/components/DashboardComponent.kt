@@ -44,7 +44,8 @@ import com.homedroidv2.app.viewmodel.DashboardViewModel
 class DashboardComponent {
 
     /**
-     * Displays the Dashboard Card, which displays the important information's of the website
+     * Composable welches zum Erzeugen der Dashboard Benutzeroberfläche verwendet wird
+     * Dabei wird ein Tab Componten erzeugt die je nach Tabindex die Dashboarddaten oder die Heinzungsdaten anzeigt
      */
     @Composable
     fun Dashboard() {
@@ -96,7 +97,10 @@ class DashboardComponent {
         }
     }
 
-
+    /**
+     * Composable welches die Dashbaorddaten anzeigt. Die Daten werden vom DashboardViewModel abgerufen zur Trennung
+     * von UI und Logik
+     */
     @Composable
     fun DashboardView(viewModel: DashboardViewModel = viewModel()){
         val dashboardData = viewModel.dashboardData.collectAsState()
@@ -161,6 +165,10 @@ class DashboardComponent {
         }
     }
 
+    /**
+     * Composable welches die Heizungsdaten anzeigt. Die Daten werden vom DashboardViewModel abgerufen zur Trennung
+     * von UI und Logik
+     */
     @Composable
     fun HeizungView(viewModel: DashboardViewModel = viewModel()){
         val heizungData = viewModel.heizungData.collectAsState()
@@ -196,6 +204,9 @@ class DashboardComponent {
         }
     }
 
+    /**
+     * Hilfs Composables zur Strukturierung des Dashboards
+     */
     @Composable
     fun BoxHeaderText(text: String) {
             Text(

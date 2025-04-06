@@ -23,6 +23,10 @@ import com.homedroidv2.app.viewmodel.GroupViewModel
 class FavoriteComponents{
 
     private val cardComponent: CardComponent = CardComponent()
+
+    /**
+     * Composable zur Darstellung aller Favoriten
+     */
     @RequiresApi(Build.VERSION_CODES.Q)
     @Composable
     fun Favorite() {
@@ -37,23 +41,18 @@ class FavoriteComponents{
     }
 
     /**
-     * ListOfFavorites is a composable function that displays a grid of favorite devices,
-     * organized in rows with a specified number of items per row.
-     * Dynamically renders a list of favorite devices retrieved from the ViewModel's `favorites` state.
-     *
-     * @param viewModel The ViewModel responsible for managing favorite devices. Defaults to the current `FavoriteViewModel`.
+     * ListOfFavorites ist eine Composable-Funktion, die eine Gitteransicht (Grid) der favorisierten Geräte darstellt.
+     * Die Geräte werden zeilenweise angezeigt, wobei eine festgelegte Anzahl an Elementen pro Zeile verwendet wird.
      *
      */
     @RequiresApi(Build.VERSION_CODES.Q)
     @Composable
     fun ListOfFavorites(
-        viewModel: FavoriteViewModel = viewModel(),
         groupViewModel: GroupViewModel = viewModel()
     ) {
         val items by groupViewModel.groups.collectAsState()
         val itemsPerRow = 3
 
-        // 🧠 Alle Favoriten aus allen Gruppen sammeln
         val favorites = items.flatMap { group ->
             group.devices.filter { it.favorite }.map { device ->
                 group to device
