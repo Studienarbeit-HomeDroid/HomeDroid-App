@@ -5,6 +5,12 @@ import com.homedroidv2.data.network.HtmlClient
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * [VERALTET] – Diese Login-Klasse wird aktuell nicht mehr verwendet.
+ *
+ * Die Klasse diente ursprünglich zur Authentifizierung und zum Abrufen geschützter Daten
+ * über einen HTML-basierten Client.
+ */
 @Singleton
 class Login @Inject constructor(
     private val htmlClient: HtmlClient,
@@ -32,7 +38,6 @@ class Login @Inject constructor(
         }
 
     }
-
 
     private fun saveUserSession(token: String) {
         val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)

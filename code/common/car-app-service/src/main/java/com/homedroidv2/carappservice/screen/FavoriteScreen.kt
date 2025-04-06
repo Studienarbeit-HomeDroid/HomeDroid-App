@@ -13,6 +13,8 @@ import androidx.car.app.model.Template
 import androidx.lifecycle.lifecycleScope
 import com.homedroidv2.carappservice.BitMapGenerator
 import com.homedroidv2.data.model.Device
+import com.homedroidv2.data.model.ParsedDevices
+import com.homedroidv2.data.model.ParsedGroup
 import com.homedroidv2.data.repositories.FavoriteRepository
 import com.homedroidv2.data.repositories.GroupRepository
 import kotlinx.coroutines.CoroutineScope
@@ -22,8 +24,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * A screen that displays a list of favorite devices in a grid layout.
+ * `FavoriteScreen` zeigt eine Übersicht aller als Favoriten markierten Smart-Home-Geräte im Fahrzeug.
+ * Diese Klasse verwendet ein `GridTemplate`, um Geräteinformationen im Rasterformat darzustellen,
  */
+
 @RequiresApi(Build.VERSION_CODES.P)
 class FavoriteScreen(
     carContext: CarContext,
@@ -34,12 +38,12 @@ class FavoriteScreen(
 
 
 
-    private var favorites: List<Device> = emptyList() // Aktuelle Favoritenliste
+    private var favorites: List<ParsedGroup> = emptyList() // Aktuelle Favoritenliste
     private var isLoading = true // Ladezustand
 
     init {
         lifecycleScope.launch {
-            favoriteRepository.getFavoritesFlow().collectLatest { newFavorites ->
+            groupRepository.getParsedGroupFlow().collectLatest { newFavorites ->
                 if (favorites != newFavorites) {
                     Log.i("FavoriteScreen", "Updating favorites: $newFavorites")
                     favorites = newFavorites
@@ -54,11 +58,7 @@ class FavoriteScreen(
         }
     }
 
-    /**
-     * Provides the template for the screen.
-     *
-     * @return A GridTemplate containing the favorite devices or a loading state.
-     */
+
     override fun onGetTemplate(): Template {
         if (isLoading) {
             return GridTemplate.Builder()
@@ -76,60 +76,89 @@ class FavoriteScreen(
             .build()
     }
 
-    /**
-     * Builds the grid items representing favorite devices.
-     *
-     * @return An ItemList containing GridItems for each favorite device.
-     */
     private fun buildGridItems(): ItemList {
         val itemListBuilder = ItemList.Builder()
-        favorites.forEach { device ->
-            when (device) {
-                is Device.StatusDevice -> {
-                    Log.i("FavoriteScreen", "Adding status device: $device")
+        favorites.forEach { group -> group.devices.filter { it.favorite }.forEach{
+            device ->
+            when (device.messwertTyp)
+            {
+                "TLFH","TEMP" -> {
                     itemListBuilder.addItem(
                         GridItem.Builder()
                             .setTitle(device.name)
-                            .setText(device.description ?: "") // Null-Sicherheit
-                            .setImage(bitMapGenerator.createTextAsIcon("${device.value}${device.unit}1"))
+                            .setText("")
+                            .setImage(bitMapGenerator.createTextAsIcon("${device.value}°C"))
+                            .setOnClickListener {
+                            }
+                            .build())
+                }
+
+                "S" -> {
+                    itemListBuilder.addItem(
+                        GridItem.Builder()
+                            .setTitle(device.name)
+                            .setText("")
+                            .setImage(bitMapGenerator.createTextAsIcon(if (device.value == "1") "Off" else "On"))
                             .setOnClickListener {
                                 showToast()
                             }
-                            .build()
-                    )
+                            .build())
                 }
-                is Device.ActionDevice -> {
+                "F" -> {
                     itemListBuilder.addItem(
                         GridItem.Builder()
                             .setTitle(device.name)
-                            .setImage(bitMapGenerator.createTextAsIcon("${device.status}"))
+                            .setText("")
+                            .setImage(bitMapGenerator.createTextAsIcon(if (device.value == "1") "Zu" else "Offen"))
                             .setOnClickListener {
-                                CoroutineScope(Dispatchers.IO).launch {
-                                    favoriteRepository.updateFavorites(device.groupid.toInt(), device)
-                                    groupRepository.updateGroup(device.groupid.toInt(), device)
-                                }
-                                invalidate()
+                                showToast()
                             }
-                            .build()
-                    )
+                            .build())
                 }
-                is Device.TemperatureDevice -> {
+                "T" -> {
                     itemListBuilder.addItem(
                         GridItem.Builder()
                             .setTitle(device.name)
-                            .setImage(bitMapGenerator.createTextAsIcon("${device.value}°C")) // Beispiel
+                            .setText("")
+                            .setImage(bitMapGenerator.createTextAsIcon(if (device.value == "1") "Zu" else "Offen"))
                             .setOnClickListener {
-                                showToast() }
-                            .build()
-                    )
+                                showToast()
+                            }
+                            .build())
                 }
+                "V", "PR" -> {
+                    itemListBuilder.addItem(
+                        GridItem.Builder()
+                            .setTitle(device.name)
+                            .setText("")
+                            .setImage(bitMapGenerator.createTextAsIcon(if (device.value == "1") "Zu" else "Offen"))
+                            .setOnClickListener {
+                                showToast()
+                            }
+                            .build())
+                }
+
+                else -> {
+                    itemListBuilder.addItem(
+                        GridItem.Builder()
+                            .setTitle(device.name)
+                            .setText("")
+                            .setImage(bitMapGenerator.createTextAsIcon(device.value))
+                            .setOnClickListener {
+                            }
+                            .build())
+                }
+
+
             }
-        }
+
+
+        } }
         return itemListBuilder.build()
     }
 
     /**
-     * Shows a toast message when an item is clicked.
+     * Zeigt Toast Message wenn angezeigt wird
      */
     private fun showToast() {
         CarToast.makeText(

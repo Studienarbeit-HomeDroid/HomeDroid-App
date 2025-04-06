@@ -32,6 +32,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 
 class GroupRepository @Inject constructor(
@@ -181,35 +183,7 @@ class GroupRepository @Inject constructor(
         }
     }
 
-    override suspend fun updateFavorite(groupId: Int?, device: ParsedDevices) {
-        Log.i("UpdateDevice", "UpdateStarted")
-        Log.i("UpdateDevice", "GroupId: $groupId")
-        Log.i("UpdateDevice", "Device: $device")
 
-        Log.i("UpdateDevice", "UpdateStarted")
-
-        if (groupId == null || device.deviceId.isEmpty()) return
-
-        val groupRef = FirebaseDatabase.getInstance().getReference("parserGroups").child(groupId.toString())
-        val deviceRef = groupRef.child("devices").child(device.deviceId)
-
-        deviceRef.get().addOnSuccessListener { snapshot ->
-            if (snapshot.exists()) {
-                val currentFavoriteStatus = snapshot.child("favorite").getValue(Boolean::class.java) ?: false
-                deviceRef.child("favorite").setValue(!currentFavoriteStatus).addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        Log.i("UpdateDevice", "Device favorite status updated successfully.")
-                    } else {
-                        Log.e("UpdateDevice", "Failed to update device favorite status.", task.exception)
-                    }
-                }
-            } else {
-                Log.e("UpdateDevice", "Device not found.")
-            }
-        }.addOnFailureListener { exception ->
-            Log.e("UpdateDevice", "Failed to fetch device data: ${exception.message}")
-        }
-    }
 
 
     override suspend fun getParsedGroupFlow(): Flow<List<ParsedGroup>> = callbackFlow {
@@ -264,8 +238,222 @@ class GroupRepository @Inject constructor(
 
 
 
-    override suspend fun updateDevice(device: ParsedDevices) {
+    override suspend fun updateDevice(groupId: Int?, device: ParsedDevices) {
         Log.i("UpdateDevice", "UpdateStarted")
+        Log.i("UpdateDevice", "UpdateStarted")
+        Log.i("UpdateDevice", "GroupId: $groupId")
+        Log.i("UpdateDevice", "Device: $device")
+
+        Log.i("UpdateDevice", "UpdateStarted")
+
+        if (groupId == null || device.deviceId.isEmpty()) return
+
+        val groupRef = FirebaseDatabase.getInstance().getReference("parserGroups").child(groupId.toString())
+        val deviceRef = groupRef.child("devices").child((device.deviceId.toInt()-1).toString())
+
+        deviceRef.get().addOnSuccessListener { snapshot ->
+            if (snapshot.exists()) {
+                val currentFavoriteStatus = snapshot.child("status").getValue(Boolean::class.java) ?: false
+                deviceRef.child("status").setValue(!currentFavoriteStatus).addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        Log.i("UpdateDevice", "Device favorite status updated successfully.")
+                    } else {
+                        Log.e("UpdateDevice", "Failed to update device favorite status.", task.exception)
+                    }
+                }
+            } else {
+                Log.e("UpdateDevice", "Device not found.")
+            }
+        }.addOnFailureListener { exception ->
+            Log.e("UpdateDevice", "Failed to fetch device data: ${exception.message}")
+        }
+    }
+
+    suspend fun getStromDevices(): List<ParsedDevices> = suspendCoroutine { cont ->
+        val groupRef = FirebaseDatabase.getInstance().getReference("parserGroups")
+
+        groupRef.get().addOnSuccessListener { snapshot ->
+            val stromDevices = mutableListOf<ParsedDevices>()
+
+            for (group in snapshot.children) {
+                val groupName = group.child("name").getValue(String::class.java)
+                if (groupName.equals("Strom", ignoreCase = true)) {
+                    val devicesSnapshot = group.child("devices")
+                    for (deviceChild in devicesSnapshot.children) {
+                        val device = deviceChild.getValue(ParsedDevices::class.java)
+                        if (device != null) {
+                            stromDevices.add(device)
+                        }
+                    }
+                    break // Wenn nur eine "Strom"-Gruppe existiert
+                }
+            }
+
+            cont.resume(stromDevices)
+        }.addOnFailureListener { exception ->
+            Log.e("GetStromDevices", "Fehler beim Laden: ${exception.message}")
+            cont.resume(emptyList())
+        }
+    }
+
+    override suspend fun updateFavorite(groupId: Int?, device: ParsedDevices) {
+        Log.i("UpdateFavorite", "Update started")
+        Log.i("UpdateFavorite", "GroupId: $groupId")
+        Log.i("UpdateFavorite", "Device: $device")
+
+        if (device.deviceId.isEmpty()) return
+
+        val groupRef = FirebaseDatabase.getInstance()
+            .getReference("parserGroups")
+            .child(groupId.toString())
+
+        val devicesRef = groupRef.child("devices")
+
+        devicesRef.get().addOnSuccessListener { snapshot ->
+            var found = false
+
+            for (child in snapshot.children) {
+                val firebaseDevice = child.getValue(ParsedDevices::class.java)
+                if (firebaseDevice?.deviceId == device.deviceId) {
+                    val deviceRef = child.ref
+                    Log.i("UpdateFavorite", "DeviceRef: $deviceRef")
+
+                    val currentFavoriteStatus = child.child("favorite").getValue(Boolean::class.java) ?: false
+                    deviceRef.child("favorite").setValue(!currentFavoriteStatus).addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            Log.i("UpdateFavorite", "Device favorite status updated to ${!currentFavoriteStatus}")
+                        } else {
+                            Log.e("UpdateFavorite", "Failed to update favorite status.", task.exception)
+                        }
+                    }
+
+                    found = true
+                    break
+                }
+            }
+
+            if (!found) {
+                Log.e("UpdateFavorite", "Device with matching deviceId not found.")
+            }
+        }.addOnFailureListener { exception ->
+            Log.e("UpdateFavorite", "Failed to fetch devices: ${exception.message}")
+        }
+    }
+
+
+    override suspend fun updateDeviceValue(groupId: Int, device: ParsedDevices, newValue: String) {
+        Log.i("UpdateDevice", "UpdateStarted")
+        Log.i("UpdateDevice", "GroupId: $groupId")
+        Log.i("UpdateDevice", "Device: $device")
+        Log.i("UpdateDevice", "Value: $newValue")
+
+        if (device.deviceId.isEmpty()) return
+
+        val groupRef = FirebaseDatabase.getInstance()
+            .getReference("parserGroups")
+            .child(groupId.toString())
+
+        val devicesRef = groupRef.child("devices")
+
+        devicesRef.get().addOnSuccessListener { snapshot ->
+            var found = false
+
+            for (child in snapshot.children) {
+                val firebaseDevice = child.getValue(ParsedDevices::class.java)
+                if (firebaseDevice?.deviceId == device.deviceId) {
+                    val deviceRef = child.ref
+                    Log.i("UpdateDeviceRef", "DeviceRef: $deviceRef")
+
+                    deviceRef.child("value").setValue(newValue).addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            Log.i("UpdateDevice", "Device value updated successfully.")
+                        } else {
+                            Log.e("UpdateDevice", "Failed to update device value.", task.exception)
+                        }
+                    }
+
+                    found = true
+                    break
+                }
+            }
+
+            if (!found) {
+                Log.e("UpdateDevice", "Device with matching deviceId not found.")
+            }
+        }.addOnFailureListener { exception ->
+            Log.e("UpdateDevice", "Failed to fetch devices: ${exception.message}")
+        }
+    }
+
+    override suspend fun getNumberOfOpenWindows(): Int {
+        val snapshot = FirebaseDatabase.getInstance()
+            .getReference("parserGroups")
+            .get()
+            .await()
+
+        var count = 0
+
+        snapshot.children.forEach { groupSnapshot ->
+            val devicesSnapshot = groupSnapshot.child("devices")
+            devicesSnapshot.children.forEach { deviceSnapshot ->
+                val messwertTyp = deviceSnapshot.child("messwertTyp").getValue(String::class.java)
+                val value = deviceSnapshot.child("value").getValue(String::class.java)
+
+                if (messwertTyp == "F" && value == "0") {
+                    Log.i("OPEN WINDOWS", "device found: ${deviceSnapshot}")
+                    count++
+                }
+            }
+        }
+
+        return count
+    }
+
+    override suspend fun getNumberOfOpenDoors(): Int {
+        val snapshot = FirebaseDatabase.getInstance()
+            .getReference("parserGroups")
+            .get()
+            .await()
+
+        var count = 0
+
+        snapshot.children.forEach { groupSnapshot ->
+            val devicesSnapshot = groupSnapshot.child("devices")
+            devicesSnapshot.children.forEach { deviceSnapshot ->
+                val messwertTyp = deviceSnapshot.child("messwertTyp").getValue(String::class.java)
+                val value = deviceSnapshot.child("value").getValue(String::class.java)
+
+                if (messwertTyp == "T" && value == "0") {
+                    count++
+                }
+            }
+        }
+
+        return count
+    }
+
+    override suspend fun getNumberOfUnlockedDoors(): Int {
+        val snapshot = FirebaseDatabase.getInstance()
+            .getReference("parserGroups")
+            .get()
+            .await()
+
+        var count = 0
+
+        snapshot.children.forEach { groupSnapshot ->
+            val devicesSnapshot = groupSnapshot.child("devices")
+            devicesSnapshot.children.forEach { deviceSnapshot ->
+                val messwertTyp = deviceSnapshot.child("messwertTyp").getValue(String::class.java)
+                val value = deviceSnapshot.child("value").getValue(String::class.java)
+
+                if ((messwertTyp == "V" || messwertTyp == "PR") && value == "0") {
+                    Log.i("UNLOCKED DOOR", "Group found: $value")
+                    count++
+                }
+            }
+        }
+
+        return count
     }
 
     override suspend fun updateGroup(groupId: Int?, device: Device.ActionDevice) {

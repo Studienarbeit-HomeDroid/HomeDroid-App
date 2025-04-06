@@ -13,7 +13,11 @@ interface IGroupRepository {
     suspend fun getGroupItemsFlow(): Flow<List<Group>>
     suspend fun updateGroup(groupId: Int?, device: Device.ActionDevice)
     suspend fun saveParsedGroups(group: ParsedGroup)
-    suspend fun updateDevice(device: ParsedDevices)
+    suspend fun updateDevice(groupId: Int?,device: ParsedDevices)
     suspend fun getParsedGroupFlow(): Flow<List<ParsedGroup>>
     suspend fun updateFavorite(groupId: Int?, device: ParsedDevices)
+    suspend fun updateDeviceValue(groupId: Int, device: ParsedDevices, newValue: String)
+    suspend fun getNumberOfUnlockedDoors(): Int
+    suspend fun getNumberOfOpenWindows(): Int
+    suspend fun getNumberOfOpenDoors(): Int
 }

@@ -14,6 +14,13 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
+/**
+ * [VERALTET] – Diese Implementierung des Favoriten-Repositorys wird nicht mehr verwendet.
+ *
+ * Die Klasse  verwaltet Favoriten-Geräte des Benutzers in der Realtime Database.
+ * Sie unterstützt das Hinzufügen, Entfernen und Aktualisieren von Favoriten sowie die Beobachtung per Flow.
+ */
+
 class FavoriteRepository @Inject constructor(
     private val database: FirebaseDatabase // Inject FirebaseDatabase
 ) : IFavoriteRepository {
@@ -55,7 +62,7 @@ class FavoriteRepository @Inject constructor(
         }
     }
 
-    // Echtzeit-Flow für Favoriten
+
      override  suspend fun getFavoritesFlow(): Flow<List<Device>> = callbackFlow {
         val listener = object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {

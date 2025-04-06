@@ -20,10 +20,9 @@ import com.homedroidv2.data.repositories.FavoriteRepository
 import com.homedroidv2.data.repositories.GroupRepository
 
 /**
-    Generates the user Inferfaces
-    User Interface is representent by Template Classes
-    Each Session manage a Stack of Screen instances
+ * Repräsentiert den Hauptbildschirm der Android Auto App und organisiert die Benutzeroberfläche über ein Tab-Layout.
  */
+
 class MainScreen(carContext: CarContext, favoriteRepository: FavoriteRepository, dashboardRepository: DashboardRepository, groupRepository: GroupRepository ) : Screen(carContext) {
 
     private val firstTab = TabInfo("first_tab", R.string.first_tab, R.drawable.home_tab)
@@ -39,7 +38,6 @@ class MainScreen(carContext: CarContext, favoriteRepository: FavoriteRepository,
         return homeScreen.onGetTemplate()
 
     }
-
 
     private fun getFavoriteTabTemplate() : Template {
         return favoriteScreen.onGetTemplate()
@@ -66,7 +64,7 @@ class MainScreen(carContext: CarContext, favoriteRepository: FavoriteRepository,
         val tabTemplate = TabTemplate.Builder(object : TabTemplate.TabCallback {
             override fun onTabSelected(tabContentId: String) {
                 activeContentId = tabContentId
-                invalidate() //call invalidate() to get the new template to display
+                invalidate() // invalidate() zum neuladen der UI
             }
         })
             .setHeaderAction(Action.APP_ICON)

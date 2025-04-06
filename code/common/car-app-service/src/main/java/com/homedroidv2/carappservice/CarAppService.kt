@@ -10,6 +10,12 @@ import com.homedroidv2.data.repositories.GroupRepository
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
+/**
+ * Einstiegspunkt für die Android Auto Integration mittels `CarAppService`.
+ *
+ * Diese Klasse stellt die Verbindung zwischen dem Fahrzeug-Infotainmentsystem und der App her.
+ */
+
 @AndroidEntryPoint
 class CarAppService : CarAppService() {
 

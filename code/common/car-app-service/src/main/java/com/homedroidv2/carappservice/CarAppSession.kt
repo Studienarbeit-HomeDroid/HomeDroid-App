@@ -10,7 +10,10 @@ import com.homedroidv2.data.repositories.FavoriteRepository
 import com.homedroidv2.data.repositories.GroupRepository
 
 /**
- * Instance of a client app running on a display in the vehicle
+ * Repräsentiert eine Instanz der App im Fahrzeug-Infotainmentsystem (Android Auto).
+ *
+ * Diese Klasse wird bei Start der App im Fahrzeug erstellt und stellt den Einstiegspunkt
+ * für die Anzeige von Inhalten dar.
  */
 class CarAppSession(
     private val favoriteRepository: FavoriteRepository,
@@ -20,7 +23,6 @@ class CarAppSession(
 
 
     override fun onCreateScreen(intent: Intent): Screen {
-        // MainScreen will be an unresolved reference until the next step
         Log.d("MyCarAppService", "Creating session with carContext: $carContext")
         return MainScreen(carContext, favoriteRepository, dashboardRepository, groupRepository)
     }

@@ -20,7 +20,12 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-
+/**
+ * `HomeScreen` zeigt eine Liste von Dashboard-Daten innerhalb der Android Auto Benutzeroberfläche.
+ *
+ * Diese Klasse verwendet ein ListTemplate, um strukturierte Informationen wie Fensterstatus,
+ * Stromverbrauch oder Solardaten als lesbare Textzeilen darzustellen.
+ */
 
 class HomeScreen(carContext: CarContext, private val dashboardRepository: DashboardRepository) : Screen(carContext) {
     private val listOfHomeListInfos = mutableListOf<HomeListInfo>()
@@ -28,7 +33,7 @@ class HomeScreen(carContext: CarContext, private val dashboardRepository: Dashbo
     val itemList = ItemList.Builder()
 
     init {
-        observeFavorites()
+       observeFavorites()
     }
 
     private fun observeFavorites() {

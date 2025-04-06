@@ -12,7 +12,9 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 
-
+/**
+ * [VERALTET] – Diese Klasse wurde durch eine neue Architektur zur Serverkommunikation ersetzt.
+ */
 class HtmlClient {
 
     private val localUrl = "http://192.168.178.200:3000"
@@ -20,9 +22,7 @@ class HtmlClient {
     private val client = OkHttpClient()
     private val baseUrl = remoteUrl
 
-    /**
-     * @return Der HTML-Content als String oder null bei einem Fehler.
-     */
+
     suspend fun getHtml(): String? {
         val request = Request.Builder()
             .url(baseUrl)
@@ -113,10 +113,6 @@ class HtmlClient {
             null
         }
     }
-
-
-
-
 
     suspend fun getIcon(icon: String): String? {
         val iconfinderApiUrl =

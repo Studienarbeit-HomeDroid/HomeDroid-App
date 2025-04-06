@@ -17,10 +17,11 @@ class BitMapGenerator{
     }
 
     /**
-    GridItems can only display a title and icons. However, since at least the device name
-    and the corresponding value/status must be displayed, an image is generated that contains this value.
-    This image is created in the method createTextAsIcon.
-    */
+     * GridItems können lediglich einen Titel und ein Icon darstellen.
+     * Da jedoch mindestens der Gerätename sowie der zugehörige Wert bzw. Status angezeigt werden müssen,
+     * wird ein Bild erzeugt, das diesen Text enthält.
+     * Dieses Bild wird in der Methode `createTextAsIcon` generiert.
+     */
     fun createTextAsIcon(text: String): CarIcon {
         val width = (paint.measureText(text)).toInt()
         val bitmap = Bitmap.createBitmap(width, iconHeight, Bitmap.Config.ARGB_8888)
