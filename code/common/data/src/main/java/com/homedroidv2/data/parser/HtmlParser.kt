@@ -141,57 +141,55 @@ class HtmlParser @Inject constructor(
             }
     }
 
-    suspend fun parseHeizungData(doc: com.fleeksoft.ksoup.nodes.Document) {
+    fun parseHeizungData(doc: com.fleeksoft.ksoup.nodes.Document) {
         val heizungElements = doc.select("[data-annotation='heizung']")
         val result = mutableListOf<HeizungValues>()
 
         heizungElements.forEachIndexed { index, element ->
-            val name = element.attr("data-name")
-            val unit = element.attr("data-unit")
+            val name = element.text() // z. B. "Modus"
+            val valueElement = element.parent()?.children()?.getOrNull(1)
+            val value = valueElement?.text() ?: "-"
+            val unit = "" // Wenn du Einheiten brauchst, kannst du sie hart kodieren oder später ergänzen
 
-            Log.i("PARSER", "Heizungseintrag: $name, $unit")
+            Log.i("PARSER", "Heizungseintrag: $name = $value")
 
             result.add(
                 HeizungValues(
                     id = index.toString(),
                     name = name,
-                    values = "",
+                    values = value,
                     unit = unit
                 )
             )
         }
+
         dashboardRepository.saveHeizungValuesList(result)
     }
 
-    suspend fun parseDashboardData(doc: com.fleeksoft.ksoup.nodes.Document) {
+    fun parseDashboardData(doc: com.fleeksoft.ksoup.nodes.Document) {
         val dashboardElements = doc.select("[data-annotation='dashboard']")
         val result = mutableListOf<DashboardValues>()
 
         dashboardElements.forEachIndexed { index, element ->
-            val title = element.attr("data-title")
-            val unit = element.attr("data-unit")
-            val subtitleElements = element.select("[data-subtitle]")
-            val valueElements = element.select("[data-value]")
+            val subtitle = element.text()
+            val valueElement = element.parent()?.children()?.getOrNull(1)
+            val value = valueElement?.text() ?: "-"
 
-            val subtitles = subtitleElements.map { it.attr("data-subtitle") }
-            val values = valueElements.map { it.attr("data-value") }
-
-            Log.i("PARSER", "Dashboardeintrag: $title = $values $unit")
+            Log.i("PARSER", "Dashboardeintrag: $subtitle = $value")
 
             result.add(
                 DashboardValues(
                     id = index.toString(),
-                    title = title,
-                    subtitle = subtitles,
-                    values = values,
-                    unit = unit
+                    title = "Dashboard", // oder dynamisch, wenn gewünscht
+                    subtitle = listOf(subtitle),
+                    values = listOf(value),
+                    unit = "" // kannst du bei Bedarf ergänzen
                 )
             )
         }
+
         dashboardRepository.saveDashboardValuesList(result)
-
     }
-
 //    suspend fun parseGroups(doc: com.fleeksoft.ksoup.nodes.Document)
 //    {
 //        Log.i("PARSER", "In Parse Groups")
