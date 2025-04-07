@@ -146,10 +146,10 @@ class HtmlParser @Inject constructor(
         val result = mutableListOf<HeizungValues>()
 
         heizungElements.forEachIndexed { index, element ->
-            val name = element.text() // z. B. "Modus"
+            val name = element.text()
             val valueElement = element.parent()?.children()?.getOrNull(1)
             val value = valueElement?.text() ?: "-"
-            val unit = "" // Wenn du Einheiten brauchst, kannst du sie hart kodieren oder später ergänzen
+            val unit = ""
 
             Log.i("PARSER", "Heizungseintrag: $name = $value")
 
@@ -180,16 +180,17 @@ class HtmlParser @Inject constructor(
             result.add(
                 DashboardValues(
                     id = index.toString(),
-                    title = "Dashboard", // oder dynamisch, wenn gewünscht
+                    title = "Dashboard",
                     subtitle = listOf(subtitle),
                     values = listOf(value),
-                    unit = "" // kannst du bei Bedarf ergänzen
+                    unit = ""
                 )
             )
         }
 
         dashboardRepository.saveDashboardValuesList(result)
     }
+
 //    suspend fun parseGroups(doc: com.fleeksoft.ksoup.nodes.Document)
 //    {
 //        Log.i("PARSER", "In Parse Groups")
